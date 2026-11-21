@@ -21,6 +21,7 @@ next-env.d.ts
 .vercel
 
 # misc
+/.data/
 .DS_Store
 *.pem
 npm-debug.log*

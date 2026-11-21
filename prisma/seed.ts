@@ -114,7 +114,7 @@ const MONITORS: MonitorSeed[] = [
           title: "Checkout API returning 503 Service Unavailable",
           severity: IncidentSeverity.CRITICAL,
           identified:
-            "Connection pool exhaustion on the primary Postgres replica after a long-running analytics query. Query killed; pool size raised from 20 → 40.",
+            "Connection pool exhaustion on the primary Postgres replica after a long-running analytics query. Query killed; pool size raised from 20 -> 40.",
           resolvedNote: "Error rate back to baseline. Post-incident review scheduled.",
         },
       },
@@ -171,7 +171,7 @@ const MONITORS: MonitorSeed[] = [
     ],
     open: {
       startAgo: 47 * MIN,
-      title: "Ledger Sync unavailable — reconciliation jobs paused",
+      title: "Ledger Sync unavailable - reconciliation jobs paused",
       severity: IncidentSeverity.CRITICAL,
       identified:
         "Message broker partition 3 is rejecting writes after a disk-full event. Draining backlog to a fresh volume; ETA ~30 min.",
@@ -207,7 +207,7 @@ const MONITORS: MonitorSeed[] = [
         incident: {
           title: "npm Registry ping failing",
           severity: IncidentSeverity.MINOR,
-          identified: "Upstream registry incident acknowledged by provider. Monitoring only — no action required on our side.",
+          identified: "Upstream registry incident acknowledged by provider. Monitoring only - no action required on our side.",
         },
       },
     ],
@@ -500,7 +500,7 @@ async function main() {
               {
                 status: IncidentStatus.INVESTIGATING,
                 author: UpdateAuthor.SYSTEM,
-                message: `${INCIDENT_POLICY.failureThreshold} consecutive failed checks — ${
+                message: `${INCIDENT_POLICY.failureThreshold} consecutive failed checks - ${
                   w.statusCode == null ? "requests timing out after 10000ms" : `HTTP ${w.statusCode}`
                 }. Incident opened automatically.`,
                 createdAt: openedAt,
@@ -554,7 +554,7 @@ async function main() {
                 {
                   status: IncidentStatus.INVESTIGATING,
                   author: UpdateAuthor.SYSTEM,
-                  message: `${INCIDENT_POLICY.failureThreshold} consecutive failed checks — HTTP 503. Incident opened automatically.`,
+                  message: `${INCIDENT_POLICY.failureThreshold} consecutive failed checks - HTTP 503. Incident opened automatically.`,
                   createdAt: openedAt,
                 },
                 {
@@ -577,9 +577,9 @@ async function main() {
   // ─── Webhooks ───────────────────────────────────────────────────────────────
 
   const ENDPOINTS: Array<{ name: string; provider: SampleProvider; scheme: SignatureScheme; count: number }> = [
-    { name: "Stripe · Production", provider: "stripe", scheme: SignatureScheme.STRIPE, count: 9 },
-    { name: "GitHub · vigil-labs", provider: "github", scheme: SignatureScheme.GITHUB, count: 7 },
-    { name: "Razorpay · India", provider: "razorpay", scheme: SignatureScheme.RAZORPAY, count: 5 },
+    { name: "Stripe - Production", provider: "stripe", scheme: SignatureScheme.STRIPE, count: 9 },
+    { name: "GitHub - vigil-labs", provider: "github", scheme: SignatureScheme.GITHUB, count: 7 },
+    { name: "Razorpay - India", provider: "razorpay", scheme: SignatureScheme.RAZORPAY, count: 5 },
   ];
   const SOURCE_IPS: Record<SampleProvider, string[]> = {
     stripe: ["3.18.12.63", "3.130.192.231", "13.235.14.237", "54.187.174.169"],
