@@ -133,13 +133,16 @@ export function isPublicIp(ip: string): boolean {
 // ─── Internal demo allowance ──────────────────────────────────────────────────
 
 export const INTERNAL_SIM_PREFIX = "/api/sim/";
+export const ALLOWED_SIM_SERVICES = ["checkout-api", "auth-gateway", "ledger-sync"] as const;
 
-/** True when `raw` is a relative internal path like `/api/sim/checkout-api`. */
+/** True when `raw` is a valid relative internal path like `/api/sim/checkout-api` (never /api/sim/recover). */
 export function isRelativeSimPath(raw: string): boolean {
-  return raw.startsWith(INTERNAL_SIM_PREFIX) && !raw.startsWith("//");
+  if (!raw.startsWith(INTERNAL_SIM_PREFIX) || raw.startsWith("//")) return false;
+  const target = raw.slice(INTERNAL_SIM_PREFIX.length).split("?")[0]?.split("#")[0];
+  return (ALLOWED_SIM_SERVICES as readonly string[]).includes(target ?? "");
 }
 
-/** True when the URL points at this deployment's own `/api/sim/*` demo endpoints. */
+/** True when the URL points at this deployment's own allowed `/api/sim/*` mock service endpoints. */
 export function isInternalSimUrl(url: URL, appOrigin: string): boolean {
   let origin: string;
   try {
@@ -147,12 +150,12 @@ export function isInternalSimUrl(url: URL, appOrigin: string): boolean {
   } catch {
     return false;
   }
-  return (
-    url.origin === origin &&
-    url.pathname.startsWith(INTERNAL_SIM_PREFIX) &&
-    // Reject path traversal such as /api/sim/../cron/probe
-    !url.pathname.slice(INTERNAL_SIM_PREFIX.length).split("/").some((seg) => seg === ".." || seg === ".")
-  );
+  if (url.origin !== origin || !url.pathname.startsWith(INTERNAL_SIM_PREFIX)) {
+    return false;
+  }
+  const target = url.pathname.slice(INTERNAL_SIM_PREFIX.length);
+  // Strictly enforce allowlist and reject /api/sim/recover or traversal
+  return (ALLOWED_SIM_SERVICES as readonly string[]).includes(target);
 }
 
 // ─── Validation ───────────────────────────────────────────────────────────────

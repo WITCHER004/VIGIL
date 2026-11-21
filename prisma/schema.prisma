@@ -120,8 +120,9 @@ model Monitor {
   statusPageId String?
   statusPage   StatusPage? @relation(fields: [statusPageId], references: [id], onDelete: SetNull)
 
-  checks    CheckRun[]
-  incidents Incident[]
+  checks     CheckRun[]
+  incidents  Incident[]
+  dailyStats MonitorDailyStat[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -269,4 +270,25 @@ model RemediationLog {
 
   @@index([incidentId, createdAt(sort: Desc)])
   @@index([webhookEventId, createdAt(sort: Desc)])
+}
+
+// ─── Pre-computed Daily Metric Rollups ────────────────────────────────────────
+
+model MonitorDailyStat {
+  id             String   @id @default(cuid())
+  monitorId      String
+  monitor        Monitor  @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  day            DateTime
+  totalChecks    Int      @default(0)
+  upChecks       Int      @default(0)
+  degradedChecks Int      @default(0)
+  downChecks     Int      @default(0)
+  sumLatencyMs   Float    @default(0)
+  p50Ms          Float?
+  p95Ms          Float?
+  p99Ms          Float?
+  updatedAt      DateTime @updatedAt
+
+  @@unique([monitorId, day])
+  @@index([day])
 }

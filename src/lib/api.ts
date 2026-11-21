@@ -98,12 +98,49 @@ export function readQuery<Out, In = Out>(req: Request, schema: ZodType<Out, ZodT
   return schema.parse(Object.fromEntries(new URL(req.url).searchParams));
 }
 
-/** Best-effort client IP (Vercel sets x-forwarded-for; first hop is the client). */
-export function clientIp(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) return xff.split(",")[0]!.trim();
-  return req.headers.get("x-real-ip")?.trim() || "unknown";
+/** Normalize client IP (e.g. strip IPv6-mapped IPv4 prefix ::ffff:). */
+function normalizeIp(raw: string): string {
+  let ip = raw.trim();
+  if (ip.startsWith("::ffff:")) {
+    ip = ip.slice(7);
+  }
+  return ip || "unknown";
 }
+
+/**
+ * Client IP extractor using strict reverse-proxy precedence:
+ * 1. Platform-overwritten headers: x-vercel-forwarded-for (single/verified), cf-connecting-ip, x-real-ip.
+ * 2. When falling back to x-forwarded-for: split by comma, trim whitespace, discard empty strings,
+ *    and select the RIGHTMOST IP (the hop appended by the trusted edge proxy, not client-spoofed leftmost).
+ * 3. Normalize IP (strip ::ffff:) and return safe fallback "unknown" if missing.
+ */
+export function extractClientIp(req: Request | Headers): string {
+  const headers = req instanceof Headers ? req : req.headers;
+
+  const vercel = headers.get("x-vercel-forwarded-for");
+  if (vercel?.trim()) return normalizeIp(vercel);
+
+  const cf = headers.get("cf-connecting-ip");
+  if (cf?.trim()) return normalizeIp(cf);
+
+  const real = headers.get("x-real-ip");
+  if (real?.trim()) return normalizeIp(real);
+
+  const xff = headers.get("x-forwarded-for");
+  if (xff) {
+    const parts = xff
+      .split(",")
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+    if (parts.length > 0) {
+      return normalizeIp(parts[parts.length - 1]!);
+    }
+  }
+
+  return "unknown";
+}
+
+export const clientIp = extractClientIp;
 
 /** Per-IP throttle for expensive actions (probes, replays). Throws 429 when exhausted. */
 export async function throttle(req: Request, action: string, cfg: BucketConfig): Promise<void> {

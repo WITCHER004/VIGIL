@@ -17,15 +17,27 @@ export const REPLAY_METHODS = ["POST", "PUT", "PATCH"] as const;
 const id = z.string().trim().min(1).max(64);
 const int = (min: number, max: number) => z.coerce.number().int().min(min).max(max);
 
-/** Absolute http(s) URL or an internal `/api/sim/<service>` demo path. */
-const targetUrl = z
+export const ALLOWED_SIM_SERVICES = ["checkout-api", "auth-gateway", "ledger-sync"] as const;
+export const ALLOWED_SIM_TARGETS = ALLOWED_SIM_SERVICES.map((s) => `/api/sim/${s}` as const);
+
+/** Absolute http(s) URL or an allowed internal `/api/sim/<service>` demo path. Explicitly rejects /api/sim/recover. */
+export const targetUrl = z
   .string()
   .trim()
   .min(1, "URL is required")
   .max(2048)
-  .refine((v) => /^\/api\/sim\/[a-z0-9-]+$/.test(v) || /^https?:\/\/[^\s]+$/i.test(v), {
-    message: "Use an absolute http(s) URL, or an internal /api/sim/<service> path.",
-  });
+  .refine(
+    (v) => {
+      if (v.startsWith("/api/sim/")) {
+        const service = v.slice("/api/sim/".length);
+        return (ALLOWED_SIM_SERVICES as readonly string[]).includes(service);
+      }
+      return /^https?:\/\/[^\s]+$/i.test(v);
+    },
+    {
+      message: `Use an absolute http(s) URL, or an allowed simulated target (${ALLOWED_SIM_TARGETS.join(", ")}).`,
+    },
+  );
 
 const optionalText = (max: number) =>
   z

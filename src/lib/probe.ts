@@ -3,6 +3,7 @@ import { MonitorStatus, type Monitor } from "@prisma/client";
 import { performance } from "node:perf_hooks";
 import { db } from "./db";
 import { applyCheckToIncidents } from "./incidents";
+import { recordDailyStatCheck } from "./rollups";
 import { safeFetch, SsrfError } from "./ssrf";
 import { deriveStatus, type IncidentAction } from "./stats";
 
@@ -188,6 +189,14 @@ export async function probeMonitor(monitor: Monitor, source: ProbeSource, appOri
           lastLatencyMs: raw.latencyMs,
           lastStatusCode: raw.statusCode,
         },
+      });
+
+      await recordDailyStatCheck(tx, {
+        monitorId: fresh.id,
+        checkedAt,
+        ok: raw.ok,
+        status,
+        latencyMs: raw.latencyMs,
       });
 
       return {

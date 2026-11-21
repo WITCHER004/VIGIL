@@ -1,7 +1,10 @@
 import { timingSafeEqual } from "node:crypto";
 import { ApiError, handler, json } from "@/lib/api";
+import { db } from "@/lib/db";
 import { claimDueMonitors, runSweep } from "@/lib/probe";
+import { refreshDailyStatPercentiles } from "@/lib/rollups";
 import { getAppOrigin } from "@/lib/utils";
+import { pruneAllWebhookEvents } from "@/lib/webhooks";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -42,5 +45,24 @@ export const GET = handler(async (req: Request) => {
     }
   }
 
-  return json({ ok: true, probed, incidents, errors: failures, at: new Date().toISOString() });
+  // Retention pruning and metric rollups executed deterministically in background cron
+  const prunedWebhookEvents = await pruneAllWebhookEvents(500).catch((err) => {
+    console.error("[cron] webhook pruning error:", err);
+    return 0;
+  });
+
+  const rolledToday = await refreshDailyStatPercentiles(db, new Date()).catch((err) => {
+    console.error("[cron] daily rollup refresh error:", err);
+    return 0;
+  });
+
+  return json({
+    ok: true,
+    probed,
+    incidents,
+    errors: failures,
+    prunedWebhookEvents,
+    rolledMonitors: rolledToday,
+    at: new Date().toISOString(),
+  });
 });

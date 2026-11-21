@@ -96,7 +96,9 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         setLastSweepAt(Date.now());
         return res;
       } catch (err) {
-        if (err instanceof ApiClientError && err.status === 429) backoffUntil.current = Date.now() + 30_000;
+        if (err instanceof ApiClientError && (err.status === 429 || err.status === 401 || err.status === 503)) {
+          backoffUntil.current = Date.now() + 30_000;
+        }
         throw err;
       } finally {
         inFlight.current = false;

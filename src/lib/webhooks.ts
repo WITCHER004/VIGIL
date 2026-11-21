@@ -121,9 +121,26 @@ export async function ingestWebhook(input: IngestInput): Promise<WebhookEvent> {
     },
   });
 
-  // Amortised retention: prune ~1 in 20 ingests rather than on every request.
-  if (Math.random() < 0.05) void pruneEvents(endpoint.id).catch(() => {});
   return event;
+}
+
+/**
+ * Bulk retention pruning: delete webhook events beyond `retentionPerEndpoint`
+ * across all endpoints in a single windowed batch query.
+ */
+export async function pruneAllWebhookEvents(retentionPerEndpoint = EVENTS_RETAINED_PER_ENDPOINT): Promise<number> {
+  const result = await db.$executeRaw`
+    WITH ranked AS (
+      SELECT id,
+        ROW_NUMBER() OVER (PARTITION BY "endpointId" ORDER BY "receivedAt" DESC) as rn
+      FROM "WebhookEvent"
+    )
+    DELETE FROM "WebhookEvent"
+    WHERE id IN (
+      SELECT id FROM ranked WHERE rn > ${retentionPerEndpoint}
+    )
+  `;
+  return Number(result);
 }
 
 export async function pruneEvents(endpointId: string, keep = EVENTS_RETAINED_PER_ENDPOINT): Promise<number> {

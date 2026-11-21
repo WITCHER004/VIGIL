@@ -119,14 +119,16 @@ async function consumeUpstash(client: Redis, key: string, cfg: BucketConfig, cos
 
 // ─── In-memory backend ────────────────────────────────────────────────────────
 
-interface MemoryBucket {
+export interface MemoryBucket {
   tokens: number;
   ts: number;
+  capacity: number;
+  refillPerSec: number;
 }
 
 const globalForBuckets = globalThis as unknown as { __vigilBuckets?: Map<string, MemoryBucket> };
 const buckets = (globalForBuckets.__vigilBuckets ??= new Map<string, MemoryBucket>());
-const MAX_MEMORY_BUCKETS = 10_000;
+export const MAX_MEMORY_BUCKETS = 10_000;
 
 function consumeMemory(key: string, cfg: BucketConfig, cost: number, now = Date.now()): RateLimitResult {
   const prev = buckets.get(key);
@@ -137,16 +139,28 @@ function consumeMemory(key: string, cfg: BucketConfig, cost: number, now = Date.
   const allowed = tokens >= cost;
   if (allowed) tokens -= cost;
 
-  // Map preserves insertion order: delete + set moves the key to the "most recent" end,
-  // so eviction below drops the least-recently-used buckets first.
+  // Map preserves insertion order: delete + set moves the key to the "most recent" end.
   buckets.delete(key);
-  buckets.set(key, { tokens, ts: now });
-  if (buckets.size > MAX_MEMORY_BUCKETS) {
-    const overflow = buckets.size - MAX_MEMORY_BUCKETS;
-    let i = 0;
-    for (const k of buckets.keys()) {
-      if (i++ >= overflow) break;
-      buckets.delete(k);
+  buckets.set(key, { tokens, ts: now, capacity: cfg.capacity, refillPerSec: cfg.refillPerSec });
+
+  if (buckets.size >= MAX_MEMORY_BUCKETS) {
+    // Pass 1: Evict buckets that have completely refilled to full capacity
+    for (const [k, b] of buckets.entries()) {
+      const timeToFullMs = ((b.capacity - b.tokens) / b.refillPerSec) * 1000;
+      if (now - b.ts >= timeToFullMs) {
+        buckets.delete(k);
+      }
+    }
+
+    // Pass 2: If still at or over threshold, evict oldest buckets (least-recently-used)
+    if (buckets.size >= MAX_MEMORY_BUCKETS) {
+      const overflow = buckets.size - MAX_MEMORY_BUCKETS + 1;
+      let count = 0;
+      for (const k of buckets.keys()) {
+        buckets.delete(k);
+        count++;
+        if (count >= overflow) break;
+      }
     }
   }
 

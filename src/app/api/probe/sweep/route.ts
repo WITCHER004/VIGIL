@@ -1,4 +1,5 @@
 import { handler, json, readJson, throttle, THROTTLE } from "@/lib/api";
+import { verifyOperatorAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { claimDueMonitors, runSweep } from "@/lib/probe";
 import { getAppOrigin } from "@/lib/utils";
@@ -14,8 +15,11 @@ export const maxDuration = 60;
  *   open. Only monitors whose interval has elapsed are leased and probed, so any
  *   number of open tabs collectively probe each monitor once per interval.
  * - "all": the simulator's "Run Probe Sweep" — probes every active monitor now.
+ *
+ * Operator authentication is enforced in production or whenever VIGIL_OPERATOR_SECRET is set.
  */
 export const POST = handler(async (req: Request) => {
+  await verifyOperatorAuth(req);
   await throttle(req, "sweep", THROTTLE.sweep);
   const { scope } = await readJson(req, sweepSchema);
 

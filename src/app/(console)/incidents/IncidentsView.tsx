@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, MessageSquarePlus } from "lucide-react";
+import { ChevronDown, MessageSquarePlus, Wrench } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DowntimeCounter, IncidentTimeline, IncidentTimelineDrawer } from "@/components/incidents/IncidentTimelineDrawer";
@@ -138,8 +138,20 @@ export function IncidentsView({ initial }: { initial: ListDTO }) {
                           <DowntimeCounter startedAt={inc.startedAt} resolvedAt={inc.resolvedAt} downtimeSec={inc.downtimeSec} className="text-[14px] text-ink" />
                         </div>
                         <IncidentTimeline updates={inc.updates} />
-                        <div className="mt-5 flex justify-end">
-                          <button type="button" className={active ? "btn-primary" : "btn-ghost"} onClick={() => setDrawerId(inc.id)}>
+                        <div className="mt-5 flex flex-wrap items-center justify-end gap-2.5">
+                          <button
+                            type="button"
+                            className="btn-secondary inline-flex items-center gap-1.5 border-copper/40 text-copper hover:border-copper hover:bg-copper/10"
+                            onClick={() => setDrawerId(inc.id)}
+                          >
+                            <Wrench size={13} className="text-copper" strokeWidth={1.75} />
+                            <span>Instant Solutions &amp; Runbook</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={active ? "btn-primary" : "btn-ghost"}
+                            onClick={() => setDrawerId(inc.id)}
+                          >
                             <MessageSquarePlus size={14} strokeWidth={1.5} />
                             {active ? "Post update" : "Add note"}
                           </button>

@@ -477,6 +477,69 @@ async function main() {
     }
     totalChecks += samples.length;
 
+    // Pre-computed daily rollups for instant 7d & 30d queries
+    const dailyMap = new Map<
+      string,
+      {
+        day: Date;
+        totalChecks: number;
+        upChecks: number;
+        degradedChecks: number;
+        downChecks: number;
+        sumLatencyMs: number;
+        latencies: number[];
+      }
+    >();
+
+    for (const s of samples) {
+      const day = new Date(Date.UTC(s.checkedAt.getUTCFullYear(), s.checkedAt.getUTCMonth(), s.checkedAt.getUTCDate()));
+      const key = day.toISOString();
+      let d = dailyMap.get(key);
+      if (!d) {
+        d = {
+          day,
+          totalChecks: 0,
+          upChecks: 0,
+          degradedChecks: 0,
+          downChecks: 0,
+          sumLatencyMs: 0,
+          latencies: [],
+        };
+        dailyMap.set(key, d);
+      }
+      d.totalChecks++;
+      if (s.ok) d.upChecks++;
+      else if (s.statusCode === 503 || s.error) d.downChecks++;
+      else d.degradedChecks++;
+      d.sumLatencyMs += s.latencyMs;
+      d.latencies.push(s.latencyMs);
+    }
+
+    const dailyRows = Array.from(dailyMap.values()).map((d) => {
+      d.latencies.sort((a, b) => a - b);
+      const p = (pct: number) => {
+        if (d.latencies.length === 0) return null;
+        const idx = Math.floor(d.latencies.length * pct);
+        return d.latencies[Math.min(idx, d.latencies.length - 1)] ?? null;
+      };
+      return {
+        monitorId: monitor.id,
+        day: d.day,
+        totalChecks: d.totalChecks,
+        upChecks: d.upChecks,
+        degradedChecks: d.degradedChecks,
+        downChecks: d.downChecks,
+        sumLatencyMs: d.sumLatencyMs,
+        p50Ms: p(0.5),
+        p95Ms: p(0.95),
+        p99Ms: p(0.99),
+      };
+    });
+
+    await prisma.monitorDailyStat.createMany({
+      data: dailyRows,
+    });
+
     // Resolved incidents derived from the telemetry
     for (const w of m.windows) {
       if (!w.incident) continue;

@@ -1,6 +1,7 @@
 import "server-only";
 import { IncidentStatus, Prisma, type Monitor } from "@prisma/client";
 import { db } from "./db";
+import { toUtcMidnight } from "./rollups";
 import { utcTimestamp } from "./sql";
 import {
   alignedWindow,
@@ -104,17 +105,21 @@ export interface MonitorSummary {
   openIncident: { id: string; title: string; status: IncidentStatus; startedAt: string } | null;
 }
 
-interface WindowRow {
+interface Window24Row {
   monitorId: string;
   total24: number;
   up24: number;
+  p50: number | null;
+  p95: number | null;
+  p99: number | null;
+}
+
+interface StatRollupRow {
+  monitorId: string;
   total7: number;
   up7: number;
   total30: number;
   up30: number;
-  p50: number | null;
-  p95: number | null;
-  p99: number | null;
 }
 
 interface SparkRow {
@@ -129,32 +134,39 @@ interface SparkRow {
 export async function getMonitorSummaries(opts: { ids?: string[]; now?: number } = {}): Promise<MonitorSummary[]> {
   const now = opts.now ?? Date.now();
   const d1 = utcTimestamp(now - DAY);
-  const d7 = utcTimestamp(now - 7 * DAY);
-  const d30 = utcTimestamp(now - 30 * DAY);
+  const day7Utc = toUtcMidnight(new Date(now - 7 * DAY));
+  const day30Utc = toUtcMidnight(new Date(now - 30 * DAY));
   const spark = alignedWindow(DAY, HOUR, now);
   const idFilter = opts.ids?.length ? Prisma.sql`AND "monitorId" IN (${Prisma.join(opts.ids)})` : Prisma.empty;
 
-  const [monitors, windows, sparkRows, openIncidents] = await Promise.all([
+  const [monitors, windows24, statRollups, sparkRows, openIncidents] = await Promise.all([
     db.monitor.findMany({
       where: opts.ids ? { id: { in: opts.ids } } : undefined,
       orderBy: [{ isPaused: "asc" }, { name: "asc" }],
     }),
-    db.$queryRaw<WindowRow[]>`
+    // 24H high-resolution query scans only the last 24 hours of CheckRun
+    db.$queryRaw<Window24Row[]>`
       SELECT "monitorId",
-        (count(*) FILTER (WHERE "checkedAt" >= ${d1}))::int                AS total24,
-        (count(*) FILTER (WHERE "checkedAt" >= ${d1} AND ok))::int         AS up24,
-        (count(*) FILTER (WHERE "checkedAt" >= ${d7}))::int                AS total7,
-        (count(*) FILTER (WHERE "checkedAt" >= ${d7} AND ok))::int         AS up7,
-        count(*)::int                                                       AS total30,
-        (count(*) FILTER (WHERE ok))::int                                   AS up30,
+        count(*)::int                                                      AS total24,
+        (count(*) FILTER (WHERE ok))::int                                  AS up24,
         percentile_cont(0.50) WITHIN GROUP (ORDER BY "latencyMs")
-          FILTER (WHERE "checkedAt" >= ${d1} AND (ok OR "statusCode" IS NOT NULL)) AS p50,
+          FILTER (WHERE (ok OR "statusCode" IS NOT NULL))                  AS p50,
         percentile_cont(0.95) WITHIN GROUP (ORDER BY "latencyMs")
-          FILTER (WHERE "checkedAt" >= ${d1} AND (ok OR "statusCode" IS NOT NULL)) AS p95,
+          FILTER (WHERE (ok OR "statusCode" IS NOT NULL))                  AS p95,
         percentile_cont(0.99) WITHIN GROUP (ORDER BY "latencyMs")
-          FILTER (WHERE "checkedAt" >= ${d1} AND (ok OR "statusCode" IS NOT NULL)) AS p99
+          FILTER (WHERE (ok OR "statusCode" IS NOT NULL))                  AS p99
       FROM "CheckRun"
-      WHERE "checkedAt" >= ${d30} ${idFilter}
+      WHERE "checkedAt" >= ${d1} ${idFilter}
+      GROUP BY "monitorId"`,
+    // 7D and 30D queries read fast pre-aggregated daily rollups (at most 30 rows per monitor)
+    db.$queryRaw<StatRollupRow[]>`
+      SELECT "monitorId",
+        COALESCE(SUM("totalChecks") FILTER (WHERE "day" >= ${day7Utc}), 0)::int AS total7,
+        COALESCE(SUM("upChecks") FILTER (WHERE "day" >= ${day7Utc}), 0)::int    AS up7,
+        COALESCE(SUM("totalChecks"), 0)::int                                    AS total30,
+        COALESCE(SUM("upChecks"), 0)::int                                       AS up30
+      FROM "MonitorDailyStat"
+      WHERE "day" >= ${day30Utc} ${idFilter}
       GROUP BY "monitorId"`,
     db.$queryRaw<SparkRow[]>`
       SELECT "monitorId",
@@ -172,7 +184,8 @@ export async function getMonitorSummaries(opts: { ids?: string[]; now?: number }
     }),
   ]);
 
-  const windowBy = new Map(windows.map((w) => [w.monitorId, w]));
+  const windowBy = new Map(windows24.map((w) => [w.monitorId, w]));
+  const statBy = new Map(statRollups.map((s) => [s.monitorId, s]));
   const sparkBy = new Map<string, Map<number, SparkRow>>();
   for (const r of sparkRows) {
     const m = sparkBy.get(r.monitorId) ?? new Map<number, SparkRow>();
@@ -184,8 +197,15 @@ export async function getMonitorSummaries(opts: { ids?: string[]; now?: number }
 
   return monitors.map((m) => {
     const w = windowBy.get(m.id);
+    const stat = statBy.get(m.id);
     const bars = sparkBy.get(m.id);
     const inc = incidentBy.get(m.id);
+
+    const total7 = stat && stat.total7 > 0 ? stat.total7 : (w?.total24 ?? 0);
+    const up7 = stat && stat.total7 > 0 ? stat.up7 : (w?.up24 ?? 0);
+    const total30 = stat && stat.total30 > 0 ? stat.total30 : (w?.total24 ?? 0);
+    const up30 = stat && stat.total30 > 0 ? stat.up30 : (w?.up24 ?? 0);
+
     return {
       id: m.id,
       name: m.name,
@@ -204,8 +224,8 @@ export async function getMonitorSummaries(opts: { ids?: string[]; now?: number }
       lastStatusCode: m.lastStatusCode,
       consecutiveFailures: m.consecutiveFailures,
       uptime24h: w ? pct(w.up24, w.total24) : null,
-      uptime7d: w ? pct(w.up7, w.total7) : null,
-      uptime30d: w ? pct(w.up30, w.total30) : null,
+      uptime7d: total7 > 0 ? pct(up7, total7) : null,
+      uptime30d: total30 > 0 ? pct(up30, total30) : null,
       p50: toNum(w?.p50),
       p95: toNum(w?.p95),
       p99: toNum(w?.p99),
@@ -241,11 +261,26 @@ export async function getMonitorDetail(id: string, range: TimeRange, now = Date.
   if (!summary) return null;
 
   const since = utcTimestamp(now - RANGE_CONFIG[range].windowMs);
+  const daySinceUtc = toUtcMidnight(new Date(now - RANGE_CONFIG[range].windowMs));
   const responded = Prisma.sql`(ok OR "statusCode" IS NOT NULL)`;
 
-  const [series, [stats], statusCodes, lastCheck, incidents] = await Promise.all([
-    getLatencySeries(range, id, now),
-    db.$queryRaw<RangeRow[]>`
+  const fetchStats = async (): Promise<RangeRow | undefined> => {
+    if (range === "7D" || range === "30D") {
+      const [daily] = await db.$queryRaw<RangeRow[]>`
+        SELECT
+          COALESCE(SUM("totalChecks"), 0)::int AS total,
+          COALESCE(SUM("upChecks"), 0)::int    AS up,
+          percentile_cont(0.50) WITHIN GROUP (ORDER BY "p50Ms") FILTER (WHERE "p50Ms" IS NOT NULL) AS p50,
+          percentile_cont(0.95) WITHIN GROUP (ORDER BY "p95Ms") FILTER (WHERE "p95Ms" IS NOT NULL) AS p95,
+          percentile_cont(0.99) WITHIN GROUP (ORDER BY "p99Ms") FILTER (WHERE "p99Ms" IS NOT NULL) AS p99,
+          CASE WHEN SUM("totalChecks") > 0 THEN (SUM("sumLatencyMs") / SUM("totalChecks"))::float8 ELSE NULL END AS mean,
+          MIN("p50Ms")::float8                 AS min,
+          MAX("p99Ms")::float8                 AS max
+        FROM "MonitorDailyStat"
+        WHERE "monitorId" = ${id} AND "day" >= ${daySinceUtc}`;
+      if (daily && daily.total > 0) return daily;
+    }
+    const [raw] = await db.$queryRaw<RangeRow[]>`
       SELECT count(*)::int AS total,
         (count(*) FILTER (WHERE ok))::int AS up,
         percentile_cont(0.50) WITHIN GROUP (ORDER BY "latencyMs") FILTER (WHERE ${responded}) AS p50,
@@ -254,7 +289,13 @@ export async function getMonitorDetail(id: string, range: TimeRange, now = Date.
         avg("latencyMs") FILTER (WHERE ${responded}) AS mean,
         min("latencyMs") FILTER (WHERE ${responded}) AS min,
         max("latencyMs") FILTER (WHERE ${responded}) AS max
-      FROM "CheckRun" WHERE "monitorId" = ${id} AND "checkedAt" >= ${since}`,
+      FROM "CheckRun" WHERE "monitorId" = ${id} AND "checkedAt" >= ${since}`;
+    return raw;
+  };
+
+  const [series, stats, statusCodes, lastCheck, incidents] = await Promise.all([
+    getLatencySeries(range, id, now),
+    fetchStats(),
     db.$queryRaw<{ statusCode: number | null; count: number }[]>`
       SELECT "statusCode", count(*)::int AS count
       FROM "CheckRun" WHERE "monitorId" = ${id} AND "checkedAt" >= ${since}
