@@ -9,22 +9,19 @@ import { Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/g
 
 export const fontDisplay = Instrument_Serif({
   subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
+  weight: "400",
   variable: "--font-display",
   display: "swap",
 });
 
 export const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
   display: "swap",
 });
 
 export const fontMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
   variable: "--font-mono",
   display: "swap",
 });
