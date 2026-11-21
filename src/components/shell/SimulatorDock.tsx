@@ -147,7 +147,7 @@ export function SimulatorDock() {
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0, transition: transitionClassic(0.45) }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, transition: transitionClassic(0.3) }}
-            className="panel flex max-h-[min(78dvh,720px)] w-full flex-col bg-surface shadow-[0_24px_60px_-24px_rgb(3_6_14/0.85)] sm:w-[400px]"
+            className="panel reticle flex max-h-[min(78dvh,720px)] w-full flex-col rounded-md border border-hairline-strong bg-surface/95 backdrop-blur-xl shadow-[0_24px_64px_-16px_rgba(3,6,14,0.9)] sm:w-[400px]"
           >
             <header className="flex items-center justify-between border-b border-hairline px-5 py-4">
               <div>
@@ -278,11 +278,15 @@ export function SimulatorDock() {
         aria-expanded={open}
         aria-controls="simulator-dock"
         className={cn(
-          "flex h-10 items-center gap-2.5 border px-4 text-[13px] font-medium shadow-[0_12px_32px_-14px_rgb(3_6_14/0.9)] transition-colors duration-200",
-          open ? "border-copper/60 bg-raised text-ink" : "border-hairline-strong bg-surface text-body hover:border-hairline-strong hover:text-ink",
+          "flex h-10 items-center gap-2.5 rounded-full border px-4 text-[13px] font-medium backdrop-blur-md shadow-[0_8px_32px_-8px_rgba(3,6,14,0.8)] transition-all duration-200 active:scale-95",
+          open
+            ? "border-copper/70 bg-raised/95 text-ink shadow-[0_0_20px_rgba(232,116,59,0.25)]"
+            : "border-hairline-strong bg-surface/85 text-body hover:border-hairline-strong hover:bg-raised/80 hover:text-ink",
         )}
       >
-        <FlaskConical size={16} strokeWidth={1.5} className="text-silver" />
+        <span className="relative flex h-3.5 w-3.5 items-center justify-center">
+          <FlaskConical size={15} strokeWidth={1.5} className="text-copper" />
+        </span>
         Simulator
       </button>
     </div>

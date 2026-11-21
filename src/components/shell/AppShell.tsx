@@ -40,9 +40,16 @@ function useTicker(ms: number) {
 
 function Wordmark() {
   return (
-    <Link href="/" className="group flex items-baseline gap-2.5" aria-label="Vigil — overview">
-      <span className="font-display text-[22px] font-medium leading-none text-ink">Vigil</span>
-      <span className="label hidden sm:inline">Telemetry</span>
+    <Link href="/" className="group flex items-center gap-2.5" aria-label="Vigil — overview">
+      <div className="relative flex h-7 w-7 items-center justify-center rounded border border-copper/40 bg-well/80 shadow-[0_0_12px_rgb(232_116_59/0.2)] transition-all duration-300 group-hover:border-copper group-hover:shadow-[0_0_18px_rgb(232_116_59/0.4)]">
+        {/* Animated radar aperture */}
+        <div className="absolute inset-1 rounded-full border border-copper/30 border-dashed animate-radar-sweep" />
+        <div className="h-1.5 w-1.5 rounded-full bg-copper shadow-[0_0_6px_rgb(232_116_59)]" />
+      </div>
+      <div className="flex items-baseline gap-2">
+        <span className="font-display text-[22px] font-medium leading-none text-ink tracking-tight">Vigil</span>
+        <span className="label hidden sm:inline text-silver/70">Telemetry</span>
+      </div>
     </Link>
   );
 }
@@ -52,13 +59,13 @@ function StatusStrip() {
   useTicker(5_000);
   const copy = SYSTEM_COPY[systemState];
   return (
-    <div className="flex items-center gap-4">
-      <div className="hidden items-center gap-2.5 md:flex" aria-live="polite">
+    <div className="flex items-center gap-3 sm:gap-4">
+      <div className="hidden items-center gap-2.5 rounded-full border border-hairline/80 bg-surface/60 px-3 py-1 backdrop-blur-md md:flex shadow-sm" aria-live="polite">
         <HeartbeatRipple beat={globalBeat} tone={copy.tone} size={7} />
-        <span className="text-[13px] text-ink">{copy.label}</span>
+        <span className="text-[12.5px] font-medium text-ink">{copy.label}</span>
         {fleet.total > 0 && (
-          <span className="num text-[12px] text-silver">
-            {fleet.OPERATIONAL}/{fleet.total - fleet.PAUSED} up
+          <span className="num ml-1 rounded bg-raised/80 px-1.5 py-0.5 text-[11px] text-silver border border-hairline/60">
+            {fleet.OPERATIONAL}/{Math.max(1, fleet.total - fleet.PAUSED)} up
           </span>
         )}
       </div>
@@ -67,11 +74,24 @@ function StatusStrip() {
         type="button"
         onClick={() => setLive(!live)}
         aria-pressed={live}
-        className="group flex items-center gap-2 text-[12px]"
+        className={cn(
+          "group flex items-center gap-2 rounded-full border px-3 py-1 text-[12px] transition-all duration-200 active:scale-95",
+          live
+            ? "border-copper/40 bg-copper/10 text-copper shadow-[0_0_12px_rgb(232_116_59/0.15)] hover:border-copper"
+            : "border-hairline bg-raised/40 text-silver hover:border-hairline-strong hover:text-body",
+        )}
         title={live ? "Live probing on — click to pause" : "Live probing paused — click to resume"}
       >
-        <span className={cn("text-[12px] transition-colors", live ? "text-ink" : "text-silver")}>{live ? "Live" : "Paused"}</span>
-        <span className="num hidden text-silver/80 sm:inline">{sweeping ? "probing…" : lastSweepAt ? `swept ${formatRelative(lastSweepAt)}` : "—"}</span>
+        <span className="relative flex h-2 w-2 items-center justify-center">
+          {live && (
+            <span className="absolute inline-flex h-full w-full rounded-full bg-copper opacity-75 animate-ping" />
+          )}
+          <span className={cn("relative inline-flex h-1.5 w-1.5 rounded-full", live ? "bg-copper shadow-[0_0_6px_rgb(232_116_59)]" : "bg-silver/40")} />
+        </span>
+        <span className="font-sans font-medium">{live ? "Live" : "Paused"}</span>
+        <span className="num hidden text-[11px] opacity-80 sm:inline">
+          {sweeping ? "probing…" : lastSweepAt ? `swept ${formatRelative(lastSweepAt)}` : "—"}
+        </span>
       </button>
     </div>
   );
@@ -161,7 +181,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <a href="#main" className="sr-only z-[60] bg-copper px-3 py-2 text-canvas focus:not-sr-only focus:fixed focus:left-3 focus:top-3">
         Skip to content
       </a>
-      <header className="sticky top-0 z-30 h-[var(--topbar-h)] border-b border-hairline bg-canvas">
+      <header className="sticky top-0 z-30 h-[var(--topbar-h)] border-b border-hairline/80 bg-canvas/80 backdrop-blur-lg">
         <div className="flex h-full items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-6">
             <Wordmark />

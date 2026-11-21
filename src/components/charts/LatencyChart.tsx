@@ -32,26 +32,26 @@ function CrosshairCard({ active, payload }: CrosshairProps) {
   const point = payload?.[0]?.payload as SeriesPoint | undefined;
   if (!active || !point) return null;
   return (
-    <div className="min-w-[188px] border border-hairline-strong bg-raised/95 px-3.5 py-3 shadow-[0_12px_32px_-12px_rgb(3_6_14/0.7)]">
-      <p className="num text-[12px] text-silver">{formatDateTime(point.t)}</p>
-      <div className="my-2.5 h-px bg-rule" />
+    <div className="reticle min-w-[196px] rounded-sm border border-hairline-strong bg-raised/95 backdrop-blur-md px-3.5 py-3 shadow-[0_16px_36px_-8px_rgba(3,6,14,0.85)]">
+      <p className="num text-[12px] text-silver/90">{formatDateTime(point.t)}</p>
+      <div className="my-2.5 h-px bg-rule/80" />
       <dl className="space-y-1.5">
         {SERIES.map((s) => (
           <div key={s.key} className="flex items-center justify-between gap-6">
             <dt className="flex items-center gap-2 text-[12px] text-silver">
-              <span className="h-[2px] w-3" style={{ backgroundColor: s.color }} />
+              <span className="h-[2px] w-3 rounded-full shadow-[0_0_6px_currentColor]" style={{ backgroundColor: s.color, color: s.color }} />
               {s.label}
             </dt>
-            <dd className="num text-[13px] text-ink">{formatMs(point[s.key])}</dd>
+            <dd className="num text-[13px] font-medium text-ink">{formatMs(point[s.key])}</dd>
           </div>
         ))}
       </dl>
-      <div className="my-2.5 h-px bg-rule" />
-      <div className="num flex justify-between text-[12px] text-silver">
+      <div className="my-2.5 h-px bg-rule/80" />
+      <div className="num flex justify-between text-[12px] text-silver/90">
         <span>
           {point.checks} checks{point.failures > 0 && <span className="text-crit"> · {point.failures} failed</span>}
         </span>
-        <span>{formatPercent(point.uptime, 1)}</span>
+        <span className="font-medium text-ink">{formatPercent(point.uptime, 1)}</span>
       </div>
     </div>
   );

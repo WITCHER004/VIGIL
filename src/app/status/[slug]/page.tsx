@@ -92,12 +92,19 @@ export default async function StatusPage({ params }: Props) {
       </header>
 
       {/* Overall */}
-      <section className="mt-10 border border-hairline-strong px-6 py-6 sm:px-8" style={{ backgroundColor: `rgb(${overall.rgb} / 0.06)` }} aria-live="polite">
+      <section
+        className="reticle mt-10 rounded-md border border-hairline-strong px-6 py-6 sm:px-8 shadow-[0_12px_40px_-16px_rgba(3,6,14,0.6)] backdrop-blur-md"
+        style={{
+          backgroundColor: `rgb(${overall.rgb} / 0.07)`,
+          boxShadow: `0 0 40px -10px rgb(${overall.rgb} / 0.15), 0 12px 32px -12px rgb(3 6 14 / 0.8)`,
+        }}
+        aria-live="polite"
+      >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <span className="relative inline-flex h-3 w-3">
-              <span className="absolute inset-0 rounded-full opacity-40" style={{ boxShadow: `0 0 0 5px rgb(${overall.rgb} / 0.25)` }} />
-              <span className="relative h-3 w-3 rounded-full" style={{ backgroundColor: `rgb(${overall.rgb})` }} />
+            <span className="relative inline-flex h-3.5 w-3.5">
+              <span className="absolute inset-0 rounded-full opacity-60 animate-ping" style={{ backgroundColor: `rgb(${overall.rgb})` }} />
+              <span className="relative h-3.5 w-3.5 rounded-full" style={{ backgroundColor: `rgb(${overall.rgb})`, boxShadow: `0 0 10px rgb(${overall.rgb} / 0.8)` }} />
             </span>
             <div>
               <h2 className={`font-display text-[28px] leading-tight ${overall.tone}`}>{overall.label}</h2>

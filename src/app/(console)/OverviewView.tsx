@@ -112,7 +112,7 @@ export function OverviewView({ initial }: { initial: OverviewDTO }) {
 
       {/* Chart + dispatches */}
       <section className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
-        <div className="panel registered p-5 sm:p-6">
+        <div className="panel reticle registered p-5 sm:p-6">
           <SectionHeading
             title="Fleet latency"
             label={`p50, p95 and p99 across active monitors · ${RANGE_CONFIG[range].label.toLowerCase()}`}
@@ -123,13 +123,13 @@ export function OverviewView({ initial }: { initial: OverviewDTO }) {
           </div>
         </div>
 
-        <aside className="panel flex flex-col p-5 sm:p-6" aria-label="Recent incident dispatches">
+        <aside className="panel reticle flex flex-col p-5 sm:p-6" aria-label="Recent incident dispatches">
           <SectionHeading title="Recent incidents" trailing={<Link href="/incidents" className="text-[13px] text-silver transition-colors hover:text-ink">View all</Link>} />
           <ul className="mt-4 flex-1 divide-y divide-hairline">
             {o.recentIncidents.length === 0 && <li className="py-10 text-center text-[13px] text-silver">No incidents recorded</li>}
             {o.recentIncidents.map((i) => (
               <li key={i.id}>
-                <button type="button" onClick={() => setIncidentId(i.id)} className="group w-full py-3.5 text-left">
+                <button type="button" onClick={() => setIncidentId(i.id)} className="group w-full py-3.5 px-2 -mx-2 rounded transition-colors hover:bg-raised/40 text-left">
                   <div className="flex items-center justify-between gap-3">
                     <StatusBadge status={i.status} />
                     <DowntimeCounter startedAt={i.startedAt} resolvedAt={i.resolvedAt} downtimeSec={i.downtimeSec} className="text-[12px] text-body" />

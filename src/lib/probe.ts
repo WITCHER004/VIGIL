@@ -211,8 +211,7 @@ export async function probeMonitor(monitor: Monitor, source: ProbeSource, appOri
  */
 export async function claimDueMonitors(limit = 25): Promise<Monitor[]> {
   const rows = await db.$queryRaw<{ id: string }[]>`
-    UPDATE "Monitor" SET "lastCheckedAt" = (NOW() AT TIME ZONE 'UTC')
-    WHERE id IN (
+    WITH due AS (
       SELECT id FROM "Monitor"
       WHERE "isPaused" = false
         AND ("lastCheckedAt" IS NULL
@@ -221,7 +220,11 @@ export async function claimDueMonitors(limit = 25): Promise<Monitor[]> {
       LIMIT ${limit}
       FOR UPDATE SKIP LOCKED
     )
-    RETURNING id`;
+    UPDATE "Monitor" m
+    SET "lastCheckedAt" = (NOW() AT TIME ZONE 'UTC')
+    FROM due
+    WHERE m.id = due.id
+    RETURNING m.id`;
   if (rows.length === 0) return [];
   return db.monitor.findMany({ where: { id: { in: rows.map((r) => r.id) } } });
 }

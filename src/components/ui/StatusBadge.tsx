@@ -37,10 +37,11 @@ export function statusLabel(status: string): string {
   return LABELS[status] ?? status.charAt(0) + status.slice(1).toLowerCase();
 }
 
-/** Status as a tone dot and a sentence-case label — no box, so tables stay quiet. */
+/** Status as a tone dot with subtle ambient glow and a sentence-case label. */
 export function StatusBadge({ status, label, className }: { status: string; label?: string; className?: string }) {
   const tone = EXTRA_TONES[status] ?? toneForStatus(status);
   const rgb = TONE_RGB[tone];
+  const isAlert = tone === "crit" || tone === "warn";
   return (
     <span
       className={cn(
@@ -49,7 +50,18 @@ export function StatusBadge({ status, label, className }: { status: string; labe
       )}
       style={{ color: `rgb(${rgb})` }}
     >
-      <span className="dot" style={{ backgroundColor: `rgb(${rgb})` }} />
+      <span className="relative flex h-2 w-2 shrink-0 items-center justify-center" aria-hidden>
+        {isAlert && (
+          <span
+            className="absolute inline-flex h-full w-full rounded-full opacity-70 animate-ping"
+            style={{ backgroundColor: `rgb(${rgb})` }}
+          />
+        )}
+        <span
+          className="relative inline-flex h-1.5 w-1.5 rounded-full"
+          style={{ backgroundColor: `rgb(${rgb})`, boxShadow: `0 0 6px rgb(${rgb} / 0.7)` }}
+        />
+      </span>
       {label ?? statusLabel(status)}
     </span>
   );

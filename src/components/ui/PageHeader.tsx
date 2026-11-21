@@ -5,18 +5,21 @@ import type { ReactNode } from "react";
 import { useMotionPreset } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-/** A 1px Silver Blue drafting rule that draws left → right on mount. */
-export function Rule({ delay = 0, className }: { delay?: number; className?: string }) {
+/** A 1px Silver Blue drafting rule that draws left → right on mount with an optional ambient light beam. */
+export function Rule({ delay = 0, className, animated = false }: { delay?: number; className?: string; animated?: boolean }) {
   const { ruleUnfurl } = useMotionPreset();
   return (
-    <motion.div
-      aria-hidden
-      variants={ruleUnfurl}
-      custom={delay}
-      initial="hidden"
-      animate="visible"
-      className={cn("h-px w-full origin-left bg-rule", className)}
-    />
+    <div className="relative overflow-hidden">
+      <motion.div
+        aria-hidden
+        variants={ruleUnfurl}
+        custom={delay}
+        initial="hidden"
+        animate="visible"
+        className={cn("h-px w-full origin-left bg-rule", className)}
+      />
+      {animated && <div className="beam-runner" aria-hidden />}
+    </div>
   );
 }
 
@@ -37,7 +40,7 @@ export function PageHeader({ eyebrow, title, description, actions, meta, classNa
   const { titleReveal, staggerContainer } = useMotionPreset();
   return (
     <header className={cn("pt-8 sm:pt-10", className)}>
-      <Rule />
+      <Rule animated />
       <motion.div
         variants={staggerContainer(0.32)}
         initial="hidden"

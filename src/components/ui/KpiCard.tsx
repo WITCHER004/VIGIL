@@ -16,22 +16,34 @@ interface KpiCardProps {
 
 /** Stat card: a label, one tabular figure and what it compares to. */
 export function KpiCard({ label, value, unit, footnote, indicator, className }: KpiCardProps) {
-  const { titleReveal } = useMotionPreset();
+  const { titleReveal, cardLift } = useMotionPreset();
 
   return (
     <motion.div
       variants={titleReveal}
-      className={cn("panel flex min-h-[128px] flex-col justify-between p-5", className)}
+      whileHover={cardLift}
+      transition={{ duration: 0.2 }}
+      className={cn(
+        "group panel reticle panel-interactive flex min-h-[132px] flex-col justify-between overflow-hidden p-5 transition-all duration-200",
+        className,
+      )}
     >
-      <div className="flex items-center justify-between gap-3">
-        <p className="label">{label}</p>
+      {/* Ambient gradient spotlight on hover */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_top_right,rgba(232,116,59,0.08),transparent_70%)]"
+      />
+      <div className="relative z-10 flex items-center justify-between gap-3">
+        <p className="label group-hover:text-ink/90 transition-colors">{label}</p>
         {indicator}
       </div>
-      <div className="mt-4 flex items-baseline gap-1.5">
-        <span className="num text-[32px] font-medium leading-none tracking-tight text-ink">{value}</span>
-        {unit && <span className="num text-[13px] text-silver">{unit}</span>}
+      <div className="relative z-10 mt-4 flex items-baseline gap-1.5">
+        <span className="num text-[34px] font-medium leading-none tracking-tight text-ink drop-shadow-[0_2px_8px_rgba(3,6,14,0.4)]">
+          {value}
+        </span>
+        {unit && <span className="num text-[13px] text-silver/80">{unit}</span>}
       </div>
-      {footnote && <p className="mt-3 text-[12px] text-silver">{footnote}</p>}
+      {footnote && <p className="relative z-10 mt-3 text-[12px] text-silver/80 group-hover:text-silver transition-colors">{footnote}</p>}
     </motion.div>
   );
 }

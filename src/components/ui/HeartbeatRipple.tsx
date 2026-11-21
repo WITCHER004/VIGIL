@@ -33,23 +33,41 @@ export function HeartbeatRipple({ beat, tone = "ok", size = 7, className, label 
   const rgb = TONE_RGB[tone];
   return (
     <span
-      className={cn("relative inline-flex shrink-0", className)}
+      className={cn("relative inline-flex shrink-0 items-center justify-center", className)}
       style={{ width: size, height: size }}
       role={label ? "status" : undefined}
       aria-label={label}
     >
       {beat > 0 && !reduce && (
-        <motion.span
-          key={beat}
-          aria-hidden
-          className="absolute inset-0 rounded-full"
-          style={{ boxShadow: `0 0 0 1px rgb(${rgb} / 0.9)` }}
-          initial={{ scale: 1, opacity: 0.7 }}
-          animate={{ scale: 2.2, opacity: 0 }}
-          transition={{ duration: 1.4, ease: EASE_CLASSIC }}
-        />
+        <>
+          <motion.span
+            key={`ring-1-${beat}`}
+            aria-hidden
+            className="absolute inset-0 rounded-full"
+            style={{ boxShadow: `0 0 0 1px rgb(${rgb} / 0.85)` }}
+            initial={{ scale: 1, opacity: 0.8 }}
+            animate={{ scale: 2.6, opacity: 0 }}
+            transition={{ duration: 1.4, ease: EASE_CLASSIC }}
+          />
+          <motion.span
+            key={`ring-2-${beat}`}
+            aria-hidden
+            className="absolute inset-0 rounded-full"
+            style={{ boxShadow: `0 0 0 1px rgb(${rgb} / 0.5)` }}
+            initial={{ scale: 1, opacity: 0.6 }}
+            animate={{ scale: 1.8, opacity: 0 }}
+            transition={{ duration: 1.1, delay: 0.15, ease: EASE_CLASSIC }}
+          />
+        </>
       )}
-      <span aria-hidden className="relative h-full w-full rounded-full" style={{ backgroundColor: `rgb(${rgb})` }} />
+      <span
+        aria-hidden
+        className="relative h-full w-full rounded-full"
+        style={{
+          backgroundColor: `rgb(${rgb})`,
+          boxShadow: `0 0 ${Math.max(6, size)}px rgb(${rgb} / 0.65)`,
+        }}
+      />
     </span>
   );
 }

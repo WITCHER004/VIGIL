@@ -111,6 +111,7 @@ export const backdrop: Variants = {
 // ─── 7. Chart / bar hover ─────────────────────────────────────────────────────
 
 export const barLift = { y: -2, transition: transitionClassic(DURATION.quick) } as const;
+export const cardLift = { y: -2.5, transition: transitionClassic(DURATION.quick) } as const;
 
 // ─── Reduced-motion aware access ──────────────────────────────────────────────
 
@@ -145,6 +146,7 @@ export function useMotionPreset() {
       backdrop,
       indicatorTransition: reduce ? ({ duration: 0 } as Transition) : indicatorTransition,
       barLift: reduce ? {} : barLift,
+      cardLift: reduce ? {} : cardLift,
     }),
     [reduce],
   );

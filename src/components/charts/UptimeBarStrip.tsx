@@ -72,11 +72,11 @@ export function UptimeBarStrip({ days, height = 34, className, showScale = true 
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.08 } }}
               transition={{ duration: 0.08 }}
-              className="pointer-events-none absolute bottom-full z-20 mb-3 w-[184px] -translate-x-1/2 border border-hairline-strong bg-raised px-3 py-2.5 shadow-[0_12px_28px_-12px_rgb(3_6_14/0.7)]"
+              className="reticle pointer-events-none absolute bottom-full z-20 mb-3 w-[190px] -translate-x-1/2 rounded-sm border border-hairline-strong bg-raised/95 backdrop-blur-md px-3.5 py-2.5 shadow-[0_16px_36px_-8px_rgba(3,6,14,0.85)]"
               style={{ left: `${((hover + 0.5) / days.length) * 100}%` }}
             >
               <p className="text-[12px] font-medium text-ink">{formatDayKey(active.date)}</p>
-              <div className="my-2 h-px bg-rule" />
+              <div className="my-2 h-px bg-rule/80" />
               <dl className="num space-y-1 text-[12px]">
                 <div className="flex justify-between">
                   <dt className="text-silver">Uptime</dt>
