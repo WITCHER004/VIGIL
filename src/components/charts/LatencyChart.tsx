@@ -15,9 +15,9 @@ import type { SeriesPoint, TimeRange } from "@/lib/stats";
 import { cn, formatAxisTime, formatDateTime, formatMs, formatPercent } from "@/lib/utils";
 
 export const SERIES = [
-  { key: "p99", label: "p99", color: "#E8743B", width: 1.6 },
-  { key: "p95", label: "p95", color: "#5F7396", width: 1.4 },
-  { key: "p50", label: "p50", color: "#8FA3C7", width: 1.6 },
+  { key: "p99", label: "p99", color: "#DF3E26", width: 1.8 },
+  { key: "p95", label: "p95", color: "#D48A17", width: 1.6 },
+  { key: "p50", label: "p50", color: "#1F449C", width: 1.8 },
 ] as const;
 
 type SeriesKey = (typeof SERIES)[number]["key"];
@@ -32,24 +32,27 @@ function CrosshairCard({ active, payload }: CrosshairProps) {
   const point = payload?.[0]?.payload as SeriesPoint | undefined;
   if (!active || !point) return null;
   return (
-    <div className="reticle min-w-[196px] rounded-sm border border-hairline-strong bg-raised/95 backdrop-blur-md px-3.5 py-3 shadow-[0_16px_36px_-8px_rgba(3,6,14,0.85)]">
-      <p className="num text-[12px] text-silver/90">{formatDateTime(point.t)}</p>
-      <div className="my-2.5 h-px bg-rule/80" />
+    <div className="min-w-[204px] rounded-[2px] border border-hairline-strong bg-surface p-3.5 shadow-placard">
+      <div className="flex items-center justify-between">
+        <span className="font-sans text-[11px] font-semibold uppercase tracking-wider text-silver">Placard Telemetry</span>
+        <span className="num text-[11px] text-body">{formatDateTime(point.t)}</span>
+      </div>
+      <div className="my-2 h-px bg-rule" />
       <dl className="space-y-1.5">
         {SERIES.map((s) => (
           <div key={s.key} className="flex items-center justify-between gap-6">
-            <dt className="flex items-center gap-2 text-[12px] text-silver">
-              <span className="h-[2px] w-3 rounded-full shadow-[0_0_6px_currentColor]" style={{ backgroundColor: s.color, color: s.color }} />
-              {s.label}
+            <dt className="flex items-center gap-2 text-[12px] text-body">
+              <span className="h-[3px] w-3 rounded-[1px]" style={{ backgroundColor: s.color }} />
+              <span className="font-medium text-ink">{s.label}</span>
             </dt>
-            <dd className="num text-[13px] font-medium text-ink">{formatMs(point[s.key])}</dd>
+            <dd className="num text-[13px] font-semibold text-ink">{formatMs(point[s.key])}</dd>
           </div>
         ))}
       </dl>
-      <div className="my-2.5 h-px bg-rule/80" />
-      <div className="num flex justify-between text-[12px] text-silver/90">
+      <div className="my-2 h-px bg-rule" />
+      <div className="num flex justify-between text-[12px] text-silver">
         <span>
-          {point.checks} checks{point.failures > 0 && <span className="text-crit"> · {point.failures} failed</span>}
+          {point.checks} checks{point.failures > 0 && <span className="font-medium text-vermilion"> · {point.failures} failed</span>}
         </span>
         <span className="font-medium text-ink">{formatPercent(point.uptime, 1)}</span>
       </div>
@@ -121,7 +124,7 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
         )}
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart key={animateKey} data={series} margin={{ top: 6, right: 6, bottom: 0, left: 0 }}>
-            <CartesianGrid vertical={false} stroke="rgba(143,163,199,0.10)" />
+            <CartesianGrid vertical={false} stroke="var(--rule)" strokeDasharray="3 3" opacity={0.5} />
             <XAxis
               dataKey="t"
               type="number"
@@ -129,7 +132,7 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
               domain={["dataMin", "dataMax"]}
               tickFormatter={(t: number) => formatAxisTime(t, range)}
               tickLine={false}
-              axisLine={{ stroke: "rgba(143,163,199,0.22)" }}
+              axisLine={{ stroke: "var(--hairline)" }}
               tickMargin={10}
               minTickGap={48}
             />
@@ -143,7 +146,7 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
             />
             <Tooltip
               content={(props) => <CrosshairCard active={props.active} payload={props.payload} />}
-              cursor={{ stroke: "rgba(143,163,199,0.45)", strokeWidth: 1, strokeDasharray: "2 3" }}
+              cursor={{ stroke: "var(--hairline-strong)", strokeWidth: 1, strokeDasharray: "2 2" }}
               isAnimationActive={false}
               offset={18}
             />

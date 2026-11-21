@@ -3,48 +3,88 @@
 @tailwind utilities;
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Vigil — colour architecture
-   Channel variables (--c-*) feed Tailwind's `rgb(var() / alpha)` tokens.
+   Vigil — Kinetic Gallery Telemetry Visual Architecture
+   Combining MoMA / Swiss International Style with Linear / Teenage Engineering.
+   Daylight Gallery (Default) & Evening Vault (Dark Mode).
    ─────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  /* Navy tonal steps */
-  --c-canvas: 10 15 30; /* #0A0F1E */
-  --c-surface: 15 22 41; /* #0F1629 */
-  --c-raised: 21 30 54; /* #151E36 */
-  --c-well: 7 11 22; /* #070B16 */
+  /* Daylight Gallery (Museum Linen & Archival Ink) */
+  --c-canvas: 244 241 234;        /* #F4F1EA — Gallery Linen */
+  --c-surface: 252 251 248;       /* #FCFBF8 — Exhibition Surface */
+  --c-raised: 255 255 255;        /* Elevated card / modal */
+  --c-well: 234 229 218;          /* #EAE5DA — Recessed Stone Well */
 
-  /* Structural ink */
-  --c-silver: 143 163 199; /* #8FA3C7 */
-  --c-steel: 95 115 150; /* #5F7396 — muted steel, p95 series */
+  /* Structural Ink & Hairlines */
+  --c-ink: 18 18 18;              /* #121212 — Carbon Ink */
+  --c-body: 85 82 76;             /* #55524C — Graphite Ink */
+  --c-silver: 130 126 118;        /* Muted Structural Label Ink */
+  --c-steel: 100 96 89;           /* Secondary Hairline Ink */
 
-  /* Accent */
-  --c-copper: 232 116 59; /* #E8743B */
+  /* Modernist Pigment Palette (Strictly Semantic) */
+  --c-viridian: 20 108 83;        /* #146C53 — Healthy / Operational / Verified */
+  --c-ochre: 212 138 23;          /* #D48A17 — Cadmium Ochre / Degraded / Caution */
+  --c-vermilion: 223 62 38;       /* #DF3E26 — Vermilion / Active Incident / Primary Focus */
+  --c-ultramarine: 31 68 156;     /* #1F449C — Ultramarine / Webhook / Interactive */
 
-  /* Readable ink */
-  --c-ink: 238 242 248; /* #EEF2F8 */
-  --c-body: 183 197 222; /* #B7C5DE */
+  /* Aliases for backwards compatibility */
+  --c-ok: var(--c-viridian);
+  --c-warn: var(--c-ochre);
+  --c-crit: var(--c-vermilion);
+  --c-copper: var(--c-vermilion);
 
-  /* Semantic signals */
-  --c-ok: 79 168 139; /* #4FA88B */
-  --c-warn: 212 162 76; /* #D4A24C — muted amber, distinct from the copper accent */
-  --c-crit: 214 82 70; /* #D65246 */
-
-  /* Lines & washes */
-  --hairline: rgb(143 163 199 / 0.16);
-  --hairline-strong: rgb(143 163 199 / 0.3);
-  --rule: rgb(143 163 199 / 0.14);
-  --copper-wash: rgb(232 116 59 / 0.12);
-  --backdrop: rgb(7 11 22 / 0.72);
+  /* Lines & Borders */
+  --hairline: rgb(213 207 195 / 0.85);       /* #D5CFC3 architectural grid */
+  --hairline-strong: rgb(18 18 18 / 0.22);
+  --rule: rgb(213 207 195 / 0.65);
+  --copper-wash: rgb(223 62 38 / 0.08);
+  --backdrop: rgb(244 241 234 / 0.82);
 
   /* Layout */
   --topbar-h: 56px;
   --rail-w: 240px;
 
+  color-scheme: light;
+}
+
+[data-theme="dark"],
+.dark {
+  /* Evening Vault (Matte Obsidian & Bone Ink) */
+  --c-canvas: 17 18 20;           /* #111214 — Matte Obsidian */
+  --c-surface: 24 26 30;          /* #181A1E — Elevated Slate */
+  --c-raised: 32 35 41;           /* Deep Drawer / Hover */
+  --c-well: 12 13 15;             /* #0C0D0F — Recessed Well */
+
+  /* Structural Ink & Hairlines */
+  --c-ink: 242 239 233;           /* #F2EFE9 — Bone Ink */
+  --c-body: 155 150 141;          /* #9B968D — Muted Ash */
+  --c-silver: 130 135 145;        /* Muted Structural Label Ink */
+  --c-steel: 85 90 100;
+
+  /* Lifted Pigments (WCAG AA Contrast) */
+  --c-viridian: 43 168 132;       /* #2BA884 */
+  --c-ochre: 229 160 50;          /* #E5A032 */
+  --c-vermilion: 240 88 64;       /* #F05840 */
+  --c-ultramarine: 91 130 232;    /* #5B82E8 */
+
+  /* Aliases */
+  --c-ok: var(--c-viridian);
+  --c-warn: var(--c-ochre);
+  --c-crit: var(--c-vermilion);
+  --c-copper: var(--c-vermilion);
+
+  /* Lines & Borders */
+  --hairline: rgb(42 45 51 / 0.95);          /* #2A2D33 */
+  --hairline-strong: rgb(242 239 233 / 0.22);
+  --rule: rgb(42 45 51 / 0.75);
+  --copper-wash: rgb(240 88 64 / 0.12);
+  --backdrop: rgb(17 18 20 / 0.85);
+
   color-scheme: dark;
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Base
+   Base Typography & Surfaces
    ─────────────────────────────────────────────────────────────────────────── */
 @layer base {
   *,
@@ -61,265 +101,107 @@
   }
 
   body {
-    @apply min-h-dvh bg-canvas font-sans text-[14px] leading-relaxed text-body;
-    font-feature-settings: "ss01", "cv11";
-    background-image: 
-      radial-gradient(ellipse 90% 45% at 50% 0%, rgb(232 116 59 / 0.05), transparent 60%),
-      radial-gradient(circle at 100% 30%, rgb(79 168 139 / 0.04), transparent 40%),
-      linear-gradient(to right, rgb(143 163 199 / 0.035) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(143 163 199 / 0.035) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-    background-attachment: fixed;
+    @apply min-h-dvh bg-canvas font-sans text-[14px] leading-relaxed text-body transition-colors duration-200;
   }
 
   h1,
   h2,
   h3 {
     @apply font-display font-normal text-ink;
-    font-optical-sizing: auto;
-    letter-spacing: -0.012em;
+    letter-spacing: -0.015em;
+  }
+
+  /* Universal Tabular Numerals */
+  .num,
+  [data-tabular-nums="true"],
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "cv01" 1;
   }
 
   ::selection {
-    background: rgb(232 116 59 / 0.28);
+    background: rgb(var(--c-vermilion) / 0.25);
     color: rgb(var(--c-ink));
   }
 
   :focus-visible {
-    outline: 1.5px solid rgb(var(--c-copper));
+    outline: 2px solid rgb(var(--c-vermilion));
     outline-offset: 2px;
   }
 
-  /* Hairline scrollbars */
+  /* Fine Museum Hairline Scrollbars */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgb(143 163 199 / 0.22) transparent;
+    scrollbar-color: rgb(var(--c-body) / 0.25) transparent;
   }
   *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  *::-webkit-scrollbar-thumb {
-    background: rgb(143 163 199 / 0.2);
-    border: 2px solid transparent;
-    background-clip: padding-box;
-    border-radius: 8px;
-  }
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-}
-
-/* ───────────────────────────────────────────────────────────────────────────
-   Components
-   ─────────────────────────────────────────────────────────────────────────── */
-@layer components {
-  /* Small label in Silver Blue — sentence case, no tracking */
-  .label {
-    @apply font-sans text-[12px] font-medium leading-4 text-silver;
-  }
-
-  /* Telemetry numerals — every latency, %, status code */
-  .num {
-    @apply font-mono;
-    font-variant-numeric: tabular-nums slashed-zero;
-    font-feature-settings: "tnum", "zero";
-  }
-
-  .panel {
-    @apply relative border border-hairline bg-surface/85 backdrop-blur-md shadow-[0_4px_24px_-4px_rgba(3,6,14,0.45)];
-    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, box-shadow 0.22s ease;
-  }
-  .panel:hover {
-    border-color: var(--hairline-strong);
-  }
-  .panel-interactive:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px -8px rgba(3, 6, 14, 0.75), 0 0 0 1px rgb(var(--c-silver) / 0.25);
-  }
-
-  .well {
-    @apply border border-hairline bg-well/90 backdrop-blur-sm font-mono text-[12.5px] leading-[1.65];
-    font-variant-numeric: tabular-nums;
-  }
-
-  .hairline-x {
-    @apply h-px w-full bg-rule;
-  }
-
-  /* Precision telemetry corner brackets */
-  .reticle {
-    position: relative;
-  }
-  .reticle::before,
-  .reticle::after {
-    content: "";
-    position: absolute;
     width: 6px;
     height: 6px;
-    pointer-events: none;
-    border-color: rgb(var(--c-copper) / 0.55);
-    transition: border-color 0.2s ease;
   }
-  .reticle::before {
-    top: -1px;
-    left: -1px;
-    border-top: 1.5px solid;
-    border-left: 1.5px solid;
-  }
-  .reticle::after {
-    bottom: -1px;
-    right: -1px;
-    border-bottom: 1.5px solid;
-    border-right: 1.5px solid;
-  }
-  .reticle:hover::before,
-  .reticle:hover::after {
-    border-color: rgb(var(--c-copper));
-  }
-
-  /* Corner registration crosshairs for featured telemetry modules.
-     Usage: <div class="panel registered"> … </div>  */
-  .registered::before,
-  .registered::after {
-    content: "+";
-    position: absolute;
-    font-family: var(--font-mono), monospace;
-    font-size: 11px;
-    line-height: 1;
-    color: rgb(var(--c-silver) / 0.55);
-    pointer-events: none;
-  }
-  .registered::before {
-    top: -6px;
-    left: -4px;
-  }
-  .registered::after {
-    bottom: -6px;
-    right: -4px;
-  }
-
-  .btn {
-    @apply inline-flex h-9 select-none items-center justify-center gap-2 rounded-sm border px-3.5 font-sans text-[13px] font-medium transition-all duration-200 ease-classic active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45;
-  }
-  .btn-primary {
-    @apply btn border-copper/80 bg-copper text-canvas shadow-[0_2px_14px_rgb(232_116_59/0.25)] hover:bg-[#F0834C] hover:border-copper hover:shadow-[0_4px_22px_rgb(232_116_59/0.45)];
-  }
-  .btn-ghost {
-    @apply btn border-hairline bg-surface/60 backdrop-blur-sm text-body hover:border-hairline-strong hover:bg-raised/80 hover:text-ink hover:shadow-[0_4px_16px_rgba(3,6,14,0.3)];
-  }
-
-  .input {
-    @apply h-9 w-full rounded-sm border border-hairline bg-well/80 px-3 font-mono text-[13px] text-ink placeholder:text-silver/50 transition-colors duration-200 ease-classic hover:border-hairline-strong focus:border-copper focus:shadow-[0_0_0_1px_rgb(var(--c-copper)),0_0_12px_rgb(232_116_59/0.2)] focus:outline-none;
-  }
-
-  /* Status dots */
-  .dot {
-    @apply inline-block h-1.5 w-1.5 shrink-0 rounded-full;
-  }
-
-  .select {
-    @apply input appearance-none bg-no-repeat pr-8;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%238FA3C7' stroke-width='1.5'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
-    background-position: right 0.75rem center;
-  }
-
-  .textarea {
-    @apply input h-auto min-h-[8rem] resize-y py-2.5 leading-[1.6];
-  }
-}
-
-@layer utilities {
-  .tabular {
-    font-variant-numeric: tabular-nums;
-  }
-  .text-balance {
-    text-wrap: balance;
+  *::-webkit-scrollbar-thumb {
+    background: rgb(var(--c-body) / 0.2);
+    border-radius: 2px;
   }
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Modern telemetry animations
+   Tactile Museum Paper Grain Texture Overlay
    ─────────────────────────────────────────────────────────────────────────── */
-@keyframes beamSweep {
-  0% { transform: translateX(-100%); opacity: 0; }
-  25% { opacity: 0.9; }
-  75% { opacity: 0.9; }
-  100% { transform: translateX(100%); opacity: 0; }
-}
-
-.beam-runner {
-  position: absolute;
-  top: -1px;
-  left: 0;
-  height: 2px;
-  width: 120px;
-  background: linear-gradient(90deg, transparent, rgb(var(--c-copper)), transparent);
-  animation: beamSweep 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+.paper-grain {
+  position: fixed;
+  inset: 0;
   pointer-events: none;
+  z-index: 9999;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
-@keyframes radarSweep {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.animate-radar-sweep {
-  animation: radarSweep 5s linear infinite;
-}
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.45; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.06); }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 2.4s ease-in-out infinite;
+[data-theme="dark"] .paper-grain,
+.dark .paper-grain {
+  opacity: 0.025;
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Recharts — strip default chrome so charts inherit the drafting aesthetic
+   Component Primitives (Swiss Layout & Modern Art Tokens)
    ─────────────────────────────────────────────────────────────────────────── */
-.recharts-cartesian-axis-tick-value {
-  font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
-  fill: rgb(var(--c-silver) / 0.8);
-  font-variant-numeric: tabular-nums;
-}
-.recharts-cartesian-grid line {
-  stroke: var(--rule);
-}
-.recharts-surface:focus,
-.recharts-wrapper:focus,
-.recharts-sector:focus {
-  outline: none;
-}
-
-/* ───────────────────────────────────────────────────────────────────────────
-   Print — the public status page should print clean on paper
-   ─────────────────────────────────────────────────────────────────────────── */
-@media print {
-  :root {
-    --c-canvas: 255 255 255;
-    --c-surface: 255 255 255;
-    --c-ink: 10 15 30;
-    --c-body: 40 48 66;
-    --c-silver: 90 104 130;
-    --hairline: rgb(10 15 30 / 0.25);
-    --rule: rgb(10 15 30 / 0.2);
+@layer components {
+  /* Architectural Micro Kicker */
+  .label {
+    @apply font-sans text-micro font-semibold uppercase text-silver;
+    letter-spacing: 0.14em;
   }
-  .no-print {
-    display: none !important;
-  }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  /* Gallery Exhibition Surface */
+  .panel {
+    @apply relative border border-hairline bg-surface rounded-[2px] transition-colors duration-200;
+  }
+
+  /* Interactive Hover Card */
+  .panel-interactive {
+    @apply cursor-pointer transition-all duration-200 hover:border-hairline-strong hover:bg-surface;
+  }
+
+  /* Recessed Stone Well */
+  .well {
+    @apply border border-hairline bg-well font-mono text-[13px] rounded-[2px];
+  }
+
+  /* Tactile Buttons */
+  .btn-primary {
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-[2px] border border-vermilion bg-vermilion px-3.5 text-[13px] font-medium text-white shadow-sm transition-all duration-150 hover:opacity-90 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-[2px] border border-hairline bg-surface px-3.5 text-[13px] font-medium text-ink transition-all duration-150 hover:border-hairline-strong hover:bg-well active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-subtle {
+    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-[2px] px-2.5 text-[12px] font-medium text-body transition-colors hover:bg-well hover:text-ink active:scale-[0.985];
+  }
+
+  /* Status Indicator Bullets */
+  .dot {
+    @apply inline-block h-2 w-2 rounded-full;
   }
 }

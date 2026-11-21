@@ -41,7 +41,7 @@ export function IncidentsView({ initial }: { initial: ListDTO }) {
   return (
     <div className="mx-auto max-w-[1180px]">
       <PageHeader
-        eyebrow="Incident log"
+        eyebrow="Exhibition Room 04 · Incident Telemetry"
         title="Incidents"
         description={`Opened automatically after ${INCIDENT_POLICY.failureThreshold} consecutive failed checks and resolved after ${INCIDENT_POLICY.recoveryThreshold} consecutive successes. Operators move incidents forward (Investigating → Identified → Resolved) and leave timeline notes as they work.`}
         meta={
@@ -94,22 +94,24 @@ export function IncidentsView({ initial }: { initial: ListDTO }) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0, transition: transitionClassic(0.4) }}
                 exit={{ opacity: 0, transition: transitionClassic(0.2) }}
-                className="panel border-l-2"
-                style={{ borderLeftColor: `rgb(${rgb} / ${active ? 0.9 : 0.35})` }}
+                className={cn(
+                  "panel border-l-[3px] shadow-placard transition-colors",
+                  active ? "border-l-vermilion" : "border-l-viridian",
+                )}
               >
                 <button
                   type="button"
                   onClick={() => setExpanded(open ? null : inc.id)}
                   aria-expanded={open}
-                  className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-x-6 gap-y-3 px-5 py-4 text-left transition-colors hover:bg-raised/25 sm:grid-cols-[minmax(0,1fr)_150px_120px_20px] sm:items-center"
+                  className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-x-6 gap-y-3 px-5 py-4 text-left transition-colors hover:bg-well/40 sm:grid-cols-[minmax(0,1fr)_150px_120px_20px] sm:items-center"
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge status={inc.status} />
                       <StatusBadge status={inc.severity} />
                     </div>
-                    <p className="mt-2.5 text-[15px] leading-snug text-ink">{inc.title}</p>
-                    <p className="mt-1 text-[12px] text-silver">
+                    <p className="mt-2 text-[15px] font-medium leading-snug text-ink">{inc.title}</p>
+                    <p className="mt-1 font-mono text-[11px] text-silver">
                       <Link href={`/monitors/${inc.monitor.id}`} onClick={(e) => e.stopPropagation()} className="hover:text-ink">
                         {inc.monitor.name}
                       </Link>{" "}
@@ -118,20 +120,20 @@ export function IncidentsView({ initial }: { initial: ListDTO }) {
                   </div>
                   <div className="hidden sm:block">
                     <p className="label">{active ? "Ongoing" : "Downtime"}</p>
-                    <p className="mt-1 text-[18px] text-ink">
+                    <p className="mt-1 font-mono text-[17px] text-ink">
                       <DowntimeCounter startedAt={inc.startedAt} resolvedAt={inc.resolvedAt} downtimeSec={inc.downtimeSec} />
                     </p>
                   </div>
                   <div className="hidden sm:block">
                     <p className="label">Updates</p>
-                    <p className="num mt-1 text-[18px] text-ink">{inc.updates.length}</p>
+                    <p className="num mt-1 font-mono text-[17px] text-ink">{inc.updates.length}</p>
                   </div>
-                  <ChevronDown size={16} strokeWidth={1.5} className={cn("mt-1 text-silver transition-transform duration-300 ease-classic sm:mt-0", open && "rotate-180")} />
+                  <ChevronDown size={16} strokeWidth={1.5} className={cn("mt-1 text-silver transition-transform duration-200 ease-gallery sm:mt-0", open && "rotate-180")} />
                 </button>
 
                 <AnimatePresence initial={false}>
                   {open && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={transitionClassic(0.4)} className="overflow-hidden">
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={transitionClassic(0.35)} className="overflow-hidden">
                       <div className="border-t border-hairline px-5 pb-5 pt-5 sm:pl-8">
                         <div className="mb-5 flex items-center justify-between gap-3 sm:hidden">
                           <span className="text-[12px] text-silver">{active ? "Ongoing" : "Downtime"}</span>
@@ -141,10 +143,10 @@ export function IncidentsView({ initial }: { initial: ListDTO }) {
                         <div className="mt-5 flex flex-wrap items-center justify-end gap-2.5">
                           <button
                             type="button"
-                            className="btn-secondary inline-flex items-center gap-1.5 border-copper/40 text-copper hover:border-copper hover:bg-copper/10"
+                            className="btn-ghost"
                             onClick={() => setDrawerId(inc.id)}
                           >
-                            <Wrench size={13} className="text-copper" strokeWidth={1.75} />
+                            <Wrench size={13} className="text-vermilion" strokeWidth={1.75} />
                             <span>Instant Solutions &amp; Runbook</span>
                           </button>
                           <button

@@ -145,43 +145,55 @@ export function SimulatorDock() {
             id="simulator-dock"
             aria-label="Live telemetry simulator"
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0, transition: transitionClassic(0.45) }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, transition: transitionClassic(0.3) }}
-            className="panel reticle flex max-h-[min(78dvh,720px)] w-full flex-col rounded-md border border-hairline-strong bg-surface/95 backdrop-blur-xl shadow-[0_24px_64px_-16px_rgba(3,6,14,0.9)] sm:w-[400px]"
+            animate={{ opacity: 1, y: 0, transition: transitionClassic(0.4) }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, transition: transitionClassic(0.25) }}
+            className="flex max-h-[min(80dvh,720px)] w-full flex-col rounded-[2px] border border-hairline-strong bg-surface shadow-placard sm:w-[420px]"
           >
-            <header className="flex items-center justify-between border-b border-hairline px-5 py-4">
-              <div>
-                <p className="label">Live telemetry</p>
-                <h2 className="text-[22px] leading-tight">Simulator</h2>
+            <header className="flex items-center justify-between border-b border-hairline bg-well/40 px-5 py-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-vermilion/10 text-vermilion border border-vermilion/20">
+                  <FlaskConical size={13} strokeWidth={1.8} />
+                </div>
+                <div>
+                  <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-silver">Tactile Instrument</p>
+                  <h2 className="font-display text-[19px] font-normal leading-tight text-ink">Simulator Dock</h2>
+                </div>
               </div>
-              <button type="button" onClick={() => setOpen(false)} className="grid h-8 w-8 place-items-center rounded-sm text-silver hover:bg-raised hover:text-ink" aria-label="Collapse simulator">
-                <ChevronDown size={16} strokeWidth={1.5} />
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="btn-ghost !h-7 !w-7 !p-0"
+                aria-label="Collapse simulator"
+              >
+                <ChevronDown size={14} strokeWidth={1.5} />
               </button>
             </header>
 
             <div className="min-h-0 flex-1 divide-y divide-hairline overflow-y-auto">
               {/* Sweep */}
-              <div className="px-5 py-4">
+              <div className="p-4 sm:p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[13px] font-medium text-ink">Run probe sweep</p>
-                    <p className="text-[12px] text-silver">Probe every active monitor right now</p>
+                    <p className="text-[13px] font-medium text-ink">Probe sweep</p>
+                    <p className="text-[12px] text-body">Simultaneous probe of all targets</p>
                   </div>
-                  <button type="button" className="btn-primary h-8 shrink-0" onClick={doSweep} disabled={busy === "sweep" || sweeping}>
-                    <Radar size={14} strokeWidth={1.5} />
-                    {busy === "sweep" ? "Sweeping…" : "Sweep"}
+                  <button type="button" className="btn-primary !h-8 shrink-0" onClick={doSweep} disabled={busy === "sweep" || sweeping}>
+                    <Radar size={13} strokeWidth={1.5} />
+                    {busy === "sweep" ? "Sweeping…" : "Run sweep"}
                   </button>
                 </div>
                 <AnimatePresence initial={false}>
                   {sweep && (
-                    <motion.ul initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} transition={transitionClassic(0.35)} className="mt-3 overflow-hidden">
+                    <motion.ul initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} transition={transitionClassic(0.35)} className="mt-3 overflow-hidden rounded-[2px] border border-hairline bg-well/50 p-2.5">
                       {sweep.results.map((r) => (
                         <li key={r.monitorId} className="flex items-center justify-between gap-3 py-1 text-[12px]">
                           <span className="flex min-w-0 items-center gap-2">
                             <HeartbeatRipple beat={1} tone={toneForStatus(r.status)} size={6} />
-                            <span className="truncate text-body">{r.name}</span>
+                            <span className="truncate font-medium text-ink">{r.name}</span>
                           </span>
-                          <span className={cn("num", r.ok ? "text-ink" : "text-crit")}>{r.ok ? formatMs(r.latencyMs) : (r.statusCode ?? "ERR")}</span>
+                          <span className={cn("num font-mono text-[11px]", r.ok ? "text-viridian" : "text-vermilion")}>
+                            {r.ok ? formatMs(r.latencyMs) : (r.statusCode ?? "ERR")}
+                          </span>
                         </li>
                       ))}
                     </motion.ul>
@@ -190,19 +202,22 @@ export function SimulatorDock() {
               </div>
 
               {/* Chaos */}
-              <div className="px-5 py-4">
-                <p className="text-[13px] font-medium text-ink">Toggle service chaos</p>
-                <p className="text-[12px] text-silver">3 failed checks open an incident; 2 healthy checks resolve it</p>
-                <div className="mt-3 flex flex-col gap-4">
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-[13px] font-medium text-ink">Chaos injection</p>
+                  <span className="font-mono text-[10px] text-silver">3 FAIL = OPEN</span>
+                </div>
+                <p className="text-[12px] text-body">Flip targets to test state machine transitions</p>
+                <div className="mt-3 flex flex-col gap-3">
                   {services.map((svc) => {
                     const monitorStatus = svc.monitors[0]?.status;
                     return (
-                      <div key={svc.id}>
-                        <div className="mb-1.5 flex items-center justify-between gap-2">
-                          <span className="num text-[12px] text-body">{svc.path}</span>
-                          {monitorStatus && <StatusBadge status={monitorStatus} className="h-[19px]" />}
+                      <div key={svc.id} className="rounded-[2px] border border-hairline bg-well/30 p-2.5">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <span className="font-mono text-[11px] font-medium text-ink">{svc.path}</span>
+                          {monitorStatus && <StatusBadge status={monitorStatus} className="h-[18px]" />}
                         </div>
-                        <div className="flex items-end gap-2">
+                        <div className="flex items-center gap-2">
                           <SegmentedTabs<SimMode>
                             ariaLabel={`${svc.label} chaos mode`}
                             size="sm"
@@ -210,9 +225,9 @@ export function SimulatorDock() {
                             value={svc.mode}
                             onChange={(m) => void setMode(svc, m)}
                             items={[
-                              { value: "HEALTHY", label: <span>Healthy <span className="num text-silver/70">{svc.baseLatencyMs}ms</span></span> },
-                              { value: "LATENCY", label: <span>Spike <span className="num text-silver/70">{svc.spikeLatencyMs}ms</span></span> },
-                              { value: "OUTAGE", label: <span>Outage <span className="num text-silver/70">503</span></span> },
+                              { value: "HEALTHY", label: <span>Healthy <span className="num text-silver">{svc.baseLatencyMs}ms</span></span> },
+                              { value: "LATENCY", label: <span>Spike <span className="num text-silver">{svc.spikeLatencyMs}ms</span></span> },
+                              { value: "OUTAGE", label: <span>Outage <span className="num text-vermilion">503</span></span> },
                             ]}
                           />
                           <button
@@ -220,9 +235,9 @@ export function SimulatorDock() {
                             onClick={() => void burst(svc)}
                             disabled={busy === svc.id || svc.monitors.length === 0}
                             title="Probe three times — enough to open or resolve an incident"
-                            className="btn-ghost h-8 shrink-0 !px-2 text-[12px]"
+                            className="btn-ghost !h-7 shrink-0 !px-2 text-[11px]"
                           >
-                            <Repeat size={13} strokeWidth={1.5} /> ×3
+                            <Repeat size={12} strokeWidth={1.5} /> ×3
                           </button>
                         </div>
                       </div>
@@ -232,33 +247,41 @@ export function SimulatorDock() {
               </div>
 
               {/* Webhooks */}
-              <div className="px-5 py-4">
-                <p className="text-[13px] font-medium text-ink">Fire sample webhook</p>
-                <p className="text-[12px] text-silver">Signed with the endpoint secret; goes through the real rate limiter</p>
+              <div className="p-4 sm:p-5">
+                <p className="text-[13px] font-medium text-ink">Provider webhooks</p>
+                <p className="text-[12px] text-body">Signed dispatch through HMAC validator</p>
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   {SAMPLE_PROVIDERS.map((p) => (
-                    <button key={p} type="button" onClick={() => void fire(p)} disabled={busy === p} className="group flex min-w-0 flex-col items-start gap-1 border border-hairline px-2.5 py-2 text-left transition-colors hover:border-hairline-strong hover:bg-raised">
-                      <span className="flex items-center gap-1.5 text-[13px] font-medium text-ink">
-                        <Send size={11} strokeWidth={1.5} className="text-silver transition-colors group-hover:text-ink" />
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => void fire(p)}
+                      disabled={busy === p}
+                      className="group flex min-w-0 flex-col items-start gap-1 rounded-[2px] border border-hairline bg-surface p-2 text-left transition-colors hover:border-hairline-strong hover:bg-well active:scale-[0.98]"
+                    >
+                      <span className="flex items-center gap-1.5 text-[12px] font-medium text-ink">
+                        <Send size={11} strokeWidth={1.5} className="text-ultramarine" />
                         {PROVIDER_LABEL[p].name}
                       </span>
-                      <span className="num block w-full truncate text-[12px] text-silver/80" title={PROVIDER_LABEL[p].event}>{PROVIDER_LABEL[p].event}</span>
+                      <span className="num block w-full truncate font-mono text-[10px] text-silver" title={PROVIDER_LABEL[p].event}>
+                        {PROVIDER_LABEL[p].event}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Log */}
-              <div className="px-5 py-4">
-                <p className="label mb-2">Dispatch log</p>
+              <div className="p-4 sm:p-5">
+                <p className="label mb-2">Telemetry Ledger</p>
                 {log.length === 0 ? (
-                  <p className="text-[12px] text-silver/70">Actions appear here</p>
+                  <p className="text-[12px] text-silver">Actions appear here</p>
                 ) : (
                   <ul className="flex flex-col gap-1.5">
                     <AnimatePresence initial={false}>
                       {log.map((e) => (
-                        <motion.li key={e.id} layout initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0, transition: transitionClassic(0.3) }} className="flex items-start gap-2.5 text-[12px]">
-                          <span className="num shrink-0 text-silver/60">{fmtClock.format(e.at)}</span>
+                        <motion.li key={e.id} layout initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0, transition: transitionClassic(0.2) }} className="flex items-start gap-2 text-[12px]">
+                          <span className="num shrink-0 font-mono text-[10px] text-silver">{fmtClock.format(e.at)}</span>
                           <HeartbeatRipple beat={0} tone={e.tone} size={5} className="mt-[5px]" />
                           <span className="min-w-0 text-body">{e.text}</span>
                         </motion.li>
@@ -278,16 +301,14 @@ export function SimulatorDock() {
         aria-expanded={open}
         aria-controls="simulator-dock"
         className={cn(
-          "flex h-10 items-center gap-2.5 rounded-full border px-4 text-[13px] font-medium backdrop-blur-md shadow-[0_8px_32px_-8px_rgba(3,6,14,0.8)] transition-all duration-200 active:scale-95",
+          "flex h-9 items-center gap-2 rounded-[2px] border px-3.5 text-[12px] font-medium shadow-placard transition-all duration-150 active:scale-95",
           open
-            ? "border-copper/70 bg-raised/95 text-ink shadow-[0_0_20px_rgba(232,116,59,0.25)]"
-            : "border-hairline-strong bg-surface/85 text-body hover:border-hairline-strong hover:bg-raised/80 hover:text-ink",
+            ? "border-vermilion bg-surface text-ink font-semibold"
+            : "border-hairline-strong bg-surface text-body hover:border-ink hover:text-ink",
         )}
       >
-        <span className="relative flex h-3.5 w-3.5 items-center justify-center">
-          <FlaskConical size={15} strokeWidth={1.5} className="text-copper" />
-        </span>
-        Simulator
+        <FlaskConical size={14} strokeWidth={1.8} className="text-vermilion" />
+        <span>Simulator</span>
       </button>
     </div>
   );

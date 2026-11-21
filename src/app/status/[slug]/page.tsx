@@ -33,24 +33,24 @@ const fmtTime = utc({ hour: "2-digit", minute: "2-digit", hour12: false });
 const fmtDayShort = utc({ day: "numeric", month: "short" });
 
 const OVERALL: Record<OverallState, { label: string; tone: string; rgb: string; note: string }> = {
-  OPERATIONAL: { label: "All systems operational", tone: "text-ok", rgb: "79 168 139", note: "Every component is responding normally." },
-  DEGRADED: { label: "Degraded performance", tone: "text-warn", rgb: "232 116 59", note: "Some components are slower than usual." },
-  PARTIAL_OUTAGE: { label: "Partial outage", tone: "text-crit", rgb: "214 82 70", note: "One or more components are unavailable." },
-  MAJOR_OUTAGE: { label: "Major outage", tone: "text-crit", rgb: "214 82 70", note: "Most components are currently unavailable." },
+  OPERATIONAL: { label: "All systems operational", tone: "text-viridian", rgb: "20 108 83", note: "Every component is responding normally within target SLAs." },
+  DEGRADED: { label: "Degraded performance", tone: "text-ochre", rgb: "212 138 23", note: "Some endpoints are exhibiting elevated response latencies." },
+  PARTIAL_OUTAGE: { label: "Partial outage", tone: "text-vermilion", rgb: "223 62 38", note: "One or more monitored services are failing synthetic health checks." },
+  MAJOR_OUTAGE: { label: "Major outage", tone: "text-vermilion", rgb: "223 62 38", note: "Critical services are unreachable or returning non-2xx codes." },
 };
 
 const COMPONENT_STATE: Record<string, { label: string; tone: string }> = {
-  OPERATIONAL: { label: "Operational", tone: "text-ok" },
-  DEGRADED: { label: "Degraded", tone: "text-warn" },
-  DOWN: { label: "Outage", tone: "text-crit" },
+  OPERATIONAL: { label: "Operational", tone: "text-viridian" },
+  DEGRADED: { label: "Degraded", tone: "text-ochre" },
+  DOWN: { label: "Outage", tone: "text-vermilion" },
   PAUSED: { label: "Maintenance", tone: "text-silver" },
   PENDING: { label: "Pending", tone: "text-silver" },
 };
 
 const UPDATE_TONE: Record<string, string> = {
-  INVESTIGATING: "text-crit",
-  IDENTIFIED: "text-warn",
-  RESOLVED: "text-ok",
+  INVESTIGATING: "text-vermilion",
+  IDENTIFIED: "text-ochre",
+  RESOLVED: "text-viridian",
 };
 
 function groupByDay(incidents: StatusPageData["incidents"]) {
@@ -93,25 +93,21 @@ export default async function StatusPage({ params }: Props) {
 
       {/* Overall */}
       <section
-        className="reticle mt-10 rounded-md border border-hairline-strong px-6 py-6 sm:px-8 shadow-[0_12px_40px_-16px_rgba(3,6,14,0.6)] backdrop-blur-md"
-        style={{
-          backgroundColor: `rgb(${overall.rgb} / 0.07)`,
-          boxShadow: `0 0 40px -10px rgb(${overall.rgb} / 0.15), 0 12px 32px -12px rgb(3 6 14 / 0.8)`,
-        }}
+        className="mt-10 rounded-[2px] border border-hairline bg-surface p-6 sm:p-8 shadow-placard"
         aria-live="polite"
       >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className="relative inline-flex h-3.5 w-3.5">
               <span className="absolute inset-0 rounded-full opacity-60 animate-ping" style={{ backgroundColor: `rgb(${overall.rgb})` }} />
-              <span className="relative h-3.5 w-3.5 rounded-full" style={{ backgroundColor: `rgb(${overall.rgb})`, boxShadow: `0 0 10px rgb(${overall.rgb} / 0.8)` }} />
+              <span className="relative h-3.5 w-3.5 rounded-full" style={{ backgroundColor: `rgb(${overall.rgb})` }} />
             </span>
             <div>
-              <h2 className={`font-display text-[28px] leading-tight ${overall.tone}`}>{overall.label}</h2>
-              <p className="mt-0.5 text-[13px] text-body/80">{overall.note}</p>
+              <h2 className={`font-display text-[28px] font-normal leading-tight ${overall.tone}`}>{overall.label}</h2>
+              <p className="mt-1 text-[13px] text-body">{overall.note}</p>
             </div>
           </div>
-          <p className="num text-[12px] text-silver">Updated {fmtTime.format(generated)} UTC</p>
+          <p className="num font-mono text-[11px] text-silver">Updated {fmtTime.format(generated)} UTC</p>
         </div>
       </section>
 

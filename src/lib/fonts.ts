@@ -1,15 +1,20 @@
-import { JetBrains_Mono, Newsreader, Plus_Jakarta_Sans } from "next/font/google";
+import { Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 
-/** Display & section titles — optical serif with italic accents. */
-export const fontDisplay = Newsreader({
+/**
+ * Modern Art Typography Architecture
+ * - Instrument Serif: Expressive exhibition display headlines & italic accents (MoMA / editorial style)
+ * - Plus Jakarta Sans: Swiss International Typographic Style for UI controls, navigation & micro-labels
+ * - JetBrains Mono: Tabular telemetry, timestamps, latency figures, HTTP codes & JSON viewers
+ */
+
+export const fontDisplay = Instrument_Serif({
   subsets: ["latin"],
+  weight: ["400"],
   style: ["normal", "italic"],
-  axes: ["opsz"],
   variable: "--font-display",
   display: "swap",
 });
 
-/** UI controls, navigation and micro-labels. */
 export const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -17,7 +22,6 @@ export const fontSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-/** Telemetry, URLs, timestamps and JSON. */
 export const fontMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],

@@ -388,7 +388,7 @@ export function WebhookInspector({ className }: { className?: string }) {
                     initial={fresh.has(e.id) ? "initial" : false}
                     animate="animate"
                     exit="exit"
-                    className="border-b border-l-2 border-b-hairline"
+                    className="border-b border-b-hairline"
                   >
                     <button
                       type="button"
@@ -396,18 +396,20 @@ export function WebhookInspector({ className }: { className?: string }) {
                         setSelectedId(e.id);
                         setTab("payload");
                       }}
-                      className={cn("relative block w-full px-4 py-3 text-left transition-colors duration-200", active ? "bg-raised" : "hover:bg-raised/45")}
+                      className={cn(
+                        "relative block w-full px-4 py-3 text-left transition-colors duration-150",
+                        active ? "bg-surface font-medium border-l-[3px] border-l-vermilion shadow-sm" : "hover:bg-well/40 text-body",
+                      )}
                       aria-current={active}
                     >
-                      {active && <span className="absolute inset-y-0 right-0 w-[2px] bg-copper" aria-hidden />}
                       <span className="flex items-center justify-between gap-3">
                         <span className="flex min-w-0 items-center gap-2">
-                          <span className="num rounded-[2px] border border-hairline px-1 text-[12px] text-silver">{e.method}</span>
+                          <span className="num rounded-[1px] border border-hairline bg-well px-1.5 py-0.2 font-mono text-[10px] text-silver">{e.method}</span>
                           <span className={cn("truncate text-[13px]", active ? "text-ink" : "text-body")}>{e.eventType ?? "unknown event"}</span>
                         </span>
                         <span className="dot" style={{ backgroundColor: `rgb(${sigRgb})` }} title={e.signatureStatus} />
                       </span>
-                      <span className="num mt-1 flex justify-between text-[12px] text-silver/75">
+                      <span className="num mt-1 flex justify-between font-mono text-[11px] text-silver">
                         <span>{formatRelative(e.receivedAt, now)}</span>
                         <span>
                           {formatBytes(e.sizeBytes)}

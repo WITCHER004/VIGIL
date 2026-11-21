@@ -20,10 +20,10 @@ const pct = (v: number) => `${v.toFixed(2)}%`;
 
 function uptimeTone(v: number | null) {
   if (v == null) return "text-silver";
-  if (v >= 99.9) return "text-ink";
-  if (v >= 99) return "text-body";
-  if (v >= 95) return "text-warn";
-  return "text-crit";
+  if (v >= 99.9) return "text-viridian font-semibold";
+  if (v >= 99) return "text-viridian";
+  if (v >= 95) return "text-ochre font-medium";
+  return "text-vermilion font-semibold";
 }
 
 interface MonitorTableProps {

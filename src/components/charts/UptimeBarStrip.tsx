@@ -7,11 +7,11 @@ import type { DailyUptime } from "@/lib/stats";
 import { cn, formatDayKey } from "@/lib/utils";
 
 function barColor(d: DailyUptime): string {
-  if (d.uptime == null) return "bg-silver/12";
-  if (d.uptime >= 99.95) return "bg-ok";
-  if (d.uptime >= 99) return "bg-ok/60";
-  if (d.uptime >= 95) return "bg-warn";
-  return "bg-crit";
+  if (d.uptime == null) return "bg-well border border-hairline/60";
+  if (d.uptime >= 99.95) return "bg-viridian";
+  if (d.uptime >= 99) return "bg-viridian/85";
+  if (d.uptime >= 95) return "bg-ochre";
+  return "bg-vermilion";
 }
 
 interface UptimeBarStripProps {
@@ -52,15 +52,15 @@ export function UptimeBarStrip({ days, height = 34, className, showScale = true 
             onMouseEnter={() => setHover(i)}
             onFocus={() => setHover(i)}
             onBlur={() => setHover(null)}
-            animate={hover === i ? barLift : { y: 0, transition: transitionClassic(0.2) }}
+            animate={hover === i ? { y: -3, scaleY: 1.05 } : { y: 0, scaleY: 1, transition: transitionClassic(0.2) }}
             className={cn(
-              "relative min-w-[3px] flex-1 rounded-[1.5px] transition-opacity duration-200 focus-visible:outline-offset-1",
+              "relative min-w-[3px] flex-1 rounded-[1.5px] transition-opacity duration-150 focus-visible:outline-offset-1",
               barColor(d),
-              hover != null && hover !== i && "opacity-55",
+              hover != null && hover !== i && "opacity-40",
             )}
             style={{ height }}
           >
-            {d.incidents > 0 && <span className="absolute inset-x-0 top-0 h-[3px] rounded-t-[1.5px] bg-canvas/50" aria-hidden />}
+            {d.incidents > 0 && <span className="absolute inset-x-0 top-0 h-[3px] rounded-t-[1.5px] bg-ink/70" aria-hidden />}
           </motion.button>
         ))}
 
@@ -68,23 +68,39 @@ export function UptimeBarStrip({ days, height = 34, className, showScale = true 
           {active && hover != null && (
             <motion.div
               key="tip"
-              initial={reduce ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.08 } }}
-              transition={{ duration: 0.08 }}
-              className="reticle pointer-events-none absolute bottom-full z-20 mb-3 w-[190px] -translate-x-1/2 rounded-sm border border-hairline-strong bg-raised/95 backdrop-blur-md px-3.5 py-2.5 shadow-[0_16px_36px_-8px_rgba(3,6,14,0.85)]"
+              initial={reduce ? false : { opacity: 0, y: 3 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 2, transition: { duration: 0.08 } }}
+              transition={{ duration: 0.12 }}
+              className="pointer-events-none absolute bottom-full z-20 mb-3 w-[204px] -translate-x-1/2 rounded-[2px] border border-hairline-strong bg-surface p-3 shadow-placard"
               style={{ left: `${((hover + 0.5) / days.length) * 100}%` }}
             >
-              <p className="text-[12px] font-medium text-ink">{formatDayKey(active.date)}</p>
-              <div className="my-2 h-px bg-rule/80" />
+              <div className="flex items-center justify-between">
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-silver">
+                  Placard · {formatDayKey(active.date)}
+                </p>
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    active.uptime == null
+                      ? "bg-silver/40"
+                      : active.uptime >= 99
+                        ? "bg-viridian"
+                        : active.uptime >= 95
+                          ? "bg-ochre"
+                          : "bg-vermilion",
+                  )}
+                />
+              </div>
+              <div className="my-2 h-px bg-rule" />
               <dl className="num space-y-1 text-[12px]">
                 <div className="flex justify-between">
                   <dt className="text-silver">Uptime</dt>
-                  <dd className="text-ink">{active.uptime == null ? "No data" : `${active.uptime.toFixed(2)}%`}</dd>
+                  <dd className="font-medium text-ink">{active.uptime == null ? "No records" : `${active.uptime.toFixed(2)}%`}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-silver">Incidents</dt>
-                  <dd className={active.incidents ? "text-warn" : "text-ink"}>{active.incidents}</dd>
+                  <dd className={active.incidents ? "font-medium text-vermilion" : "text-ink"}>{active.incidents}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-silver">Checks</dt>

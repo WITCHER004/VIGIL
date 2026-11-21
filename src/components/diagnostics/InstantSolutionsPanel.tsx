@@ -212,10 +212,10 @@ export function InstantSolutionsPanel({
 
   if (loading) {
     return (
-      <div className={cn("panel border-l-2 border-l-copper/40 p-5", className)}>
+      <div className={cn("panel border-l-[3px] border-l-vermilion/50 p-5 shadow-placard", className)}>
         <div className="flex items-center gap-3 text-silver">
-          <RotateCw size={14} className="animate-spin text-copper" />
-          <span className="text-[13px] tracking-wide">Executing deterministic diagnostic ruleset…</span>
+          <RotateCw size={14} className="animate-spin text-vermilion" />
+          <span className="text-[13px] tracking-wide text-body">Evaluating deterministic diagnostic ruleset…</span>
         </div>
       </div>
     );
@@ -225,15 +225,15 @@ export function InstantSolutionsPanel({
 
   const confidenceBadge =
     report.confidence === "HIGH" ? (
-      <span className="rounded-sm border border-ok/30 bg-ok/10 px-2 py-0.5 text-[11px] font-medium tracking-wide text-ok">
+      <span className="rounded-[2px] border border-viridian/30 bg-viridian/10 px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-viridian">
         HIGH CONFIDENCE
       </span>
     ) : report.confidence === "MEDIUM" ? (
-      <span className="rounded-sm border border-warn/30 bg-warn/10 px-2 py-0.5 text-[11px] font-medium tracking-wide text-warn">
+      <span className="rounded-[2px] border border-ochre/30 bg-ochre/10 px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-ochre">
         MEDIUM CONFIDENCE
       </span>
     ) : (
-      <span className="rounded-sm border border-silver/30 bg-silver/10 px-2 py-0.5 text-[11px] font-medium tracking-wide text-silver">
+      <span className="rounded-[2px] border border-hairline bg-well px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-silver">
         LOW CONFIDENCE
       </span>
     );
@@ -241,21 +241,21 @@ export function InstantSolutionsPanel({
   return (
     <div
       className={cn(
-        "panel relative overflow-hidden rounded-md border border-hairline border-l-2 border-l-copper bg-surface/95 p-5 shadow-sm backdrop-blur-md",
+        "panel relative overflow-hidden rounded-[2px] border border-hairline border-l-[3px] border-l-vermilion bg-surface p-5 sm:p-6 shadow-placard",
         className,
       )}
     >
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-hairline/80 pb-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-hairline pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-copper" />
-            <span className="label text-[11px] tracking-label text-copper">VIGIL DIAGNOSTIC RUNBOOK</span>
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-vermilion" />
+            <span className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-vermilion">Curator's Prescription</span>
           </div>
-          <h3 className="font-display text-[19px] tracking-tight text-ink sm:text-[21px]">
+          <h3 className="mt-1 font-display text-[22px] tracking-tight text-ink sm:text-[24px]">
             {report.rootCauseTitle}
           </h3>
-          <p className="mt-1 text-[13px] leading-relaxed text-body">{report.summary}</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-body">{report.summary}</p>
         </div>
         <div className="flex items-center gap-2">{confidenceBadge}</div>
       </div>

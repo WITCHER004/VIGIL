@@ -102,7 +102,7 @@ export function Drawer({ open, onClose, title, eyebrow, description, width = "md
             animate="visible"
             exit="exit"
             className={cn(
-              "absolute inset-y-0 right-0 flex w-full flex-col bg-surface shadow-drawer focus:outline-none",
+              "absolute inset-y-0 right-0 flex w-full flex-col border-l border-hairline bg-surface shadow-placard focus:outline-none",
               WIDTHS[width],
             )}
           >

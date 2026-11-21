@@ -1,28 +1,44 @@
-// Note: intentionally no "use client" — constants here are importable from server
-// components too. `useMotionPreset` is a hook and must only be called in client components.
 import { useReducedMotion, type Transition, type Variants } from "framer-motion";
 import { useMemo } from "react";
 
 /**
- * Vigil motion language — weighted, deliberate, architectural.
- * Like a calibrated dial settling into place: no bounce, no overshoot gimmicks.
+ * Vigil Kinetic Gallery Motion System
+ * Combining Alexander Calder kinetic balance with Swiss typographic precision.
+ * Respects prefers-reduced-motion everywhere.
  */
 
-/** Signature editorial easing. */
+export const EASE_GALLERY = [0.19, 1, 0.22, 1] as const;
 export const EASE_CLASSIC = [0.22, 1, 0.36, 1] as const;
 
-/** Subtle, well-damped spring for layout glides (nav indicator, drawers). */
-export const SPRING_SUBTLE = { type: "spring", stiffness: 320, damping: 32, mass: 0.9 } as const satisfies Transition;
+export const SPRING_MOBILE = {
+  type: "spring",
+  stiffness: 260,
+  damping: 28,
+  mass: 0.9,
+} as const satisfies Transition;
+
+export const SPRING_SUBTLE = {
+  type: "spring",
+  stiffness: 320,
+  damping: 32,
+  mass: 0.9,
+} as const satisfies Transition;
 
 export const DURATION = {
   instant: 0.12,
   quick: 0.2,
   base: 0.35,
-  rule: 0.65,
-  settle: 1.2,
+  rule: 0.55,
+  settle: 1.0,
 } as const;
 
-export const STAGGER = 0.06;
+export const STAGGER = 0.05;
+
+export const transitionGallery = (duration: number = DURATION.base, delay = 0): Transition => ({
+  duration,
+  delay,
+  ease: EASE_GALLERY,
+});
 
 export const transitionClassic = (duration: number = DURATION.base, delay = 0): Transition => ({
   duration,
@@ -30,124 +46,127 @@ export const transitionClassic = (duration: number = DURATION.base, delay = 0): 
   ease: EASE_CLASSIC,
 });
 
-// ─── 1. Architectural rule unfurl ─────────────────────────────────────────────
+// ─── 1. Architectural Grid Drawing ──────────────────────────────────────────
 
 export const ruleUnfurl: Variants = {
   hidden: { scaleX: 0, originX: 0 },
   visible: (delay: number = 0) => ({
     scaleX: 1,
     originX: 0,
-    transition: transitionClassic(DURATION.rule, delay),
+    transition: transitionGallery(DURATION.rule, delay),
   }),
 };
 
-/** Container that staggers editorial children after the rules have drawn. */
-export const staggerContainer = (delayChildren = 0.35, stagger = STAGGER): Variants => ({
-  hidden: {},
-  visible: { transition: { delayChildren, staggerChildren: stagger } },
-});
+export const verticalRuleUnfurl: Variants = {
+  hidden: { scaleY: 0, originY: 0 },
+  visible: (delay: number = 0) => ({
+    scaleY: 1,
+    originY: 0,
+    transition: transitionGallery(DURATION.rule, delay),
+  }),
+};
+
+// ─── 2. Masked Editorial Title Reveal ────────────────────────────────────────
+
+export const maskedTitleReveal: Variants = {
+  hidden: { y: "100%", opacity: 0 },
+  visible: {
+    y: "0%",
+    opacity: 1,
+    transition: transitionGallery(0.55),
+  },
+};
 
 export const titleReveal: Variants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: transitionClassic(0.55) },
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: transitionGallery(DURATION.base) },
 };
 
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: transitionClassic(DURATION.base) },
+  visible: { opacity: 1, transition: transitionGallery(DURATION.base) },
 };
 
-// ─── 2. Tabular number morph ──────────────────────────────────────────────────
+// ─── 3. Staggered Gallery Placards ──────────────────────────────────────────
 
-export const digitRoll: Variants = {
-  enter: (direction: 1 | -1) => ({ y: direction * 8, opacity: 0 }),
-  center: { y: 0, opacity: 1, transition: transitionClassic(0.42) },
-  exit: (direction: 1 | -1) => ({ y: direction * -8, opacity: 0, transition: transitionClassic(0.28) }),
+export const staggerContainer = (delayChildren = 0.1, stagger = STAGGER): Variants => ({
+  hidden: {},
+  visible: { transition: { delayChildren, staggerChildren: stagger } },
+});
+
+export const placardItem: Variants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: { opacity: 1, y: 0, transition: transitionGallery(0.3) },
 };
 
-// ─── 3. Gliding copper indicator ──────────────────────────────────────────────
+// ─── 4. Live Feed Edge Flash ────────────────────────────────────────────────
 
-export const NAV_INDICATOR_ID = "active-nav-indicator";
-export const indicatorTransition: Transition = transitionClassic(0.35);
-
-// ─── 4. Heartbeat ripple ──────────────────────────────────────────────────────
-
-export const heartbeatRipple: Variants = {
-  initial: { scale: 1, opacity: 0.55 },
-  animate: { scale: 2.2, opacity: 0, transition: { duration: 1.4, ease: EASE_CLASSIC } },
+export const feedFlash: Variants = {
+  initial: { opacity: 0, x: -6 },
+  animate: { opacity: 1, x: 0, transition: transitionGallery(0.25) },
+  exit: { opacity: 0, transition: { duration: 0.15 } },
 };
 
-// ─── 5. Live feed entry ───────────────────────────────────────────────────────
+// ─── 5. Tactile Drawer & Modal ──────────────────────────────────────────────
 
-export const feedItem: Variants = {
-  initial: { opacity: 0, y: -8, borderLeftColor: "rgb(232 116 59 / 1)" },
-  animate: {
-    opacity: 1,
-    y: 0,
-    borderLeftColor: ["rgb(232 116 59 / 1)", "rgb(232 116 59 / 1)", "rgb(143 163 199 / 0.16)"],
-    transition: {
-      opacity: transitionClassic(0.35),
-      y: transitionClassic(0.45),
-      borderLeftColor: { duration: DURATION.settle, times: [0, 0.35, 1], ease: EASE_CLASSIC },
-    },
-  },
-  exit: { opacity: 0, transition: transitionClassic(0.2) },
-};
-
-// ─── 6. Slide-over drawers ────────────────────────────────────────────────────
-
-export const drawerPanel: Variants = {
+export const drawerSlide: Variants = {
   hidden: { x: "100%" },
-  visible: { x: 0, transition: transitionClassic(0.5) },
-  exit: { x: "100%", transition: transitionClassic(0.36) },
+  visible: { x: 0, transition: transitionGallery(0.4) },
+  exit: { x: "100%", transition: { duration: 0.25, ease: EASE_GALLERY } },
 };
 
-export const backdrop: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: transitionClassic(0.35) },
-  exit: { opacity: 0, transition: transitionClassic(0.3) },
-};
+// ─── 6. Micro-Tactility ─────────────────────────────────────────────────────
 
-// ─── 7. Chart / bar hover ─────────────────────────────────────────────────────
+export const microTap = { scale: 0.985 };
 
-export const barLift = { y: -2, transition: transitionClassic(DURATION.quick) } as const;
-export const cardLift = { y: -2.5, transition: transitionClassic(DURATION.quick) } as const;
-
-// ─── Reduced-motion aware access ──────────────────────────────────────────────
-
-const STILL: Variants = {
-  hidden: { opacity: 1 },
-  visible: { opacity: 1 },
-  initial: { opacity: 1 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0, transition: { duration: 0.01 } },
-  enter: { opacity: 1 },
-  center: { opacity: 1 },
-};
+export const NAV_INDICATOR_ID = "gallery-nav-indicator";
+export const TAB_INDICATOR_ID = "gallery-tab-indicator";
 
 /**
- * Returns the motion presets, collapsed to static equivalents when the user
- * has requested reduced motion. Layout glides become instant.
+ * Hook providing motion presets with automatic reduced-motion fallback.
  */
 export function useMotionPreset() {
-  const reduce = useReducedMotion() ?? false;
-  return useMemo(
-    () => ({
-      reduce,
-      ruleUnfurl: reduce ? STILL : ruleUnfurl,
-      titleReveal: reduce ? STILL : titleReveal,
-      staggerContainer: (delayChildren?: number, stagger?: number) =>
-        reduce ? STILL : staggerContainer(delayChildren, stagger),
-      fadeIn: reduce ? STILL : fadeIn,
-      digitRoll: reduce ? STILL : digitRoll,
-      heartbeatRipple: reduce ? STILL : heartbeatRipple,
-      feedItem: reduce ? STILL : feedItem,
-      drawerPanel: reduce ? STILL : drawerPanel,
-      backdrop,
-      indicatorTransition: reduce ? ({ duration: 0 } as Transition) : indicatorTransition,
-      barLift: reduce ? {} : barLift,
-      cardLift: reduce ? {} : cardLift,
-    }),
-    [reduce],
-  );
+  const reduce = useReducedMotion();
+
+  return useMemo(() => {
+    if (reduce) {
+      return {
+        reduce: true,
+        indicatorTransition: { duration: 0 },
+        ruleVariants: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
+        ruleUnfurl: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
+        titleReveal: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
+        fadeIn: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
+        backdrop: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
+        drawerPanel: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
+        feedItem: { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 } },
+        digitRoll: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
+        stagger: { hidden: {}, visible: {} },
+        staggerContainer: (_delay = 0, _stagger = 0) => ({ hidden: {}, visible: {} }),
+        cardLift: undefined,
+        barLift: undefined,
+        microTap: undefined,
+        transition: { duration: 0 },
+      };
+    }
+
+    return {
+      reduce: false,
+      indicatorTransition: SPRING_MOBILE,
+      ruleVariants: ruleUnfurl,
+      ruleUnfurl,
+      titleReveal,
+      fadeIn,
+      backdrop: fadeIn,
+      drawerPanel: drawerSlide,
+      feedItem: feedFlash,
+      digitRoll: { hidden: { opacity: 0, y: 4 }, visible: { opacity: 1, y: 0, transition: transitionGallery(0.2) } },
+      stagger: staggerContainer(),
+      staggerContainer,
+      cardLift: { y: -2 },
+      barLift: { y: -3 },
+      microTap,
+      transition: transitionGallery(),
+    };
+  }, [reduce]);
 }

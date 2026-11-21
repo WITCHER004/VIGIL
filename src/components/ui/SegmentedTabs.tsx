@@ -79,7 +79,7 @@ export function SegmentedTabs<T extends string>({
                 <motion.span
                   layoutId={NAV_INDICATOR_ID}
                   transition={indicatorTransition}
-                  className="absolute inset-x-2 -bottom-px h-[2px] bg-copper"
+                  className="absolute inset-x-2 -bottom-px h-[2px] bg-vermilion"
                 />
               )}
             </button>

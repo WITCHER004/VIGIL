@@ -23,24 +23,24 @@ function highlightLine(line: string, lineIndex: number): ReactNode[] {
     let text: string = tok;
     if (tok.startsWith('"')) {
       if (m[2]) {
-        cls = "text-silver";
+        cls = "text-ultramarine font-medium";
         text = tok.slice(0, tok.length - m[2].length);
         out.push(
           <span key={`${lineIndex}-${i++}`} className={cls}>
             {text}
           </span>,
-          <span key={`${lineIndex}-${i++}`} className="text-silver/50">
+          <span key={`${lineIndex}-${i++}`} className="text-silver">
             {m[2]}
           </span>,
         );
         last = idx + tok.length;
         continue;
       }
-      cls = "text-[#C9D6EA]";
+      cls = "text-ink";
     } else if (tok === "true" || tok === "false" || tok === "null") {
-      cls = "text-ok";
+      cls = "text-viridian font-semibold";
     } else if (/^-?\d/.test(tok)) {
-      cls = "text-copper";
+      cls = "text-vermilion";
     }
     out.push(
       <span key={`${lineIndex}-${i++}`} className={cls}>

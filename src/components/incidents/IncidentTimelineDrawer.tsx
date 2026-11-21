@@ -28,7 +28,7 @@ export function DowntimeCounter({ startedAt, resolvedAt, downtimeSec, className 
   }, [resolvedAt]);
   const sec = resolvedAt ? (downtimeSec ?? 0) : Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
   return (
-    <span className={cn("num tabular-nums", !resolvedAt && "text-crit", className)} suppressHydrationWarning>
+    <span className={cn("num tabular-nums", !resolvedAt ? "text-vermilion font-medium" : "text-body", className)} suppressHydrationWarning>
       {formatDuration(sec)}
     </span>
   );

@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils";
 export type Tone = "ok" | "warn" | "crit" | "idle" | "copper";
 
 export const TONE_RGB: Record<Tone, string> = {
-  ok: "79 168 139",
-  warn: "212 162 76",
-  crit: "214 82 70",
-  idle: "143 163 199",
-  copper: "232 116 59",
+  ok: "20 108 83",        // Viridian
+  warn: "212 138 23",      // Cadmium Ochre
+  crit: "223 62 38",       // Vermilion
+  idle: "130 126 118",     // Graphite Silver
+  copper: "223 62 38",     // Vermilion
 };
 
 interface HeartbeatRippleProps {
