@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus, RotateCcw, Webhook } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTelemetry } from "@/components/providers/TelemetryProvider";
+import { InstantSolutionsPanel } from "@/components/diagnostics/InstantSolutionsPanel";
 import { CopyField } from "@/components/ui/CopyField";
 import { FormError } from "@/components/ui/Field";
 import { HeartbeatRipple, toneForStatus, TONE_RGB } from "@/components/ui/HeartbeatRipple";
@@ -478,6 +479,24 @@ export function WebhookInspector({ className }: { className?: string }) {
                 </p>
               </div>
             </header>
+
+            {/* Instant Solutions & Guided Remediation */}
+            {(ev.signatureStatus === "INVALID" || ev.signatureStatus === "MISSING") && (
+              <div className="px-5 pt-3 pb-2 sm:px-6">
+                <InstantSolutionsPanel
+                  webhookId={ev.id}
+                  webhookContext={{
+                    eventId: ev.id,
+                    onSmartReplayDone: () => {
+                      loadDetail(ev.id);
+                    },
+                  }}
+                  onRemediated={() => {
+                    loadDetail(ev.id);
+                  }}
+                />
+              </div>
+            )}
 
             <SegmentedTabs<DetailTab>
               ariaLabel="Request detail"

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LatencyChart } from "@/components/charts/LatencyChart";
+import { InstantSolutionsPanel } from "@/components/diagnostics/InstantSolutionsPanel";
 import { DowntimeCounter, IncidentTimelineDrawer } from "@/components/incidents/IncidentTimelineDrawer";
 import { CheckLedger } from "@/components/monitors/CheckLedger";
 import { MonitorDrawer } from "@/components/monitors/MonitorDrawer";
@@ -120,6 +121,19 @@ export function MonitorDetailView({ id, initial }: { id: string; initial: Monito
       <div className="mt-6 max-w-2xl">
         <CopyField label={internal ? "Target · internal demo endpoint" : "Target"} value={m.url} />
       </div>
+
+      {/* Instant Solutions & Guided Remediation */}
+      {(m.openIncident || m.status === "DOWN" || m.status === "DEGRADED") && (
+        <div className="mt-8">
+          <InstantSolutionsPanel
+            incidentId={m.openIncident?.id}
+            onRemediated={() => {
+              bump();
+              refresh();
+            }}
+          />
+        </div>
+      )}
 
       {/* Range KPIs */}
       <div className="mt-8 flex items-end justify-between gap-4">

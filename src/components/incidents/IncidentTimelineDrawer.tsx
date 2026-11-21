@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { InstantSolutionsPanel } from "@/components/diagnostics/InstantSolutionsPanel";
 import { useTelemetry } from "@/components/providers/TelemetryProvider";
 import { Drawer } from "@/components/ui/Drawer";
 import { FormError } from "@/components/ui/Field";
@@ -203,7 +204,24 @@ export function IncidentTimelineDrawer({ incidentId, onClose, onChanged }: Incid
 
           <motion.div variants={titleReveal} className="h-px bg-rule" />
 
+          {/* Instant Solutions & Guided Remediation Engine */}
           <motion.div variants={titleReveal}>
+            <InstantSolutionsPanel
+              incidentId={inc.id}
+              onRemediated={() => {
+                bump();
+                apiFetch<IncidentResponse>(`/api/incidents/${inc.id}`).then((d) => {
+                  setData(d);
+                  onChanged?.(d.incident);
+                });
+              }}
+            />
+          </motion.div>
+
+          <motion.div variants={titleReveal}>
+            <div className="mb-3">
+              <span className="label text-silver">Incident Updates & Timeline</span>
+            </div>
             <IncidentTimeline updates={inc.updates} />
           </motion.div>
         </motion.div>

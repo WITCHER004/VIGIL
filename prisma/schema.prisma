@@ -63,6 +63,19 @@ enum SignatureStatus {
   MISSING
 }
 
+enum RemediationActionType {
+  RUNBOOK_WEBHOOK
+  SMART_REPLAY
+  COPY_SNIPPET
+  ADAPTIVE_BACKOFF
+}
+
+enum RemediationStatus {
+  EXECUTED
+  VERIFIED
+  FAILED
+}
+
 enum SimMode {
   HEALTHY
   LATENCY
@@ -147,10 +160,11 @@ model Incident {
   severity    IncidentSeverity @default(MAJOR)
   startedAt   DateTime         @default(now())
   resolvedAt  DateTime?
-  downtimeSec Int?
-  updates     IncidentUpdate[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  downtimeSec  Int?
+  updates      IncidentUpdate[]
+  remediations RemediationLog[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   @@index([monitorId, status])
   @@index([status, startedAt(sort: Desc)])
@@ -200,6 +214,7 @@ model WebhookEvent {
   eventType       String?
   signatureStatus SignatureStatus @default(UNCHECKED)
   replays         WebhookReplay[]
+  remediations    RemediationLog[]
   receivedAt      DateTime        @default(now())
 
   @@index([endpointId, receivedAt(sort: Desc)])
@@ -233,4 +248,25 @@ model SimService {
   label     String
   mode      SimMode  @default(HEALTHY)
   updatedAt DateTime @updatedAt
+}
+
+// ─── Instant Solutions & Guided Remediation Audit ─────────────────────────────
+
+model RemediationLog {
+  id             String                @id @default(cuid())
+  incidentId     String?
+  incident       Incident?             @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  webhookEventId String?
+  webhookEvent   WebhookEvent?         @relation(fields: [webhookEventId], references: [id], onDelete: Cascade)
+  actionType     RemediationActionType
+  title          String
+  status         RemediationStatus     @default(EXECUTED)
+  executedBy     String                @default("operator")
+  responseCode   Int?
+  outputPreview  String?
+  metadata       Json?
+  createdAt      DateTime              @default(now())
+
+  @@index([incidentId, createdAt(sort: Desc)])
+  @@index([webhookEventId, createdAt(sort: Desc)])
 }

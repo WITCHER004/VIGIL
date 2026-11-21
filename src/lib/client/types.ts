@@ -57,4 +57,63 @@ export interface SimServiceDTO {
   monitors: { id: string; name: string; url: string; status: MonitorSummary["status"] }[];
 }
 
+export interface EvidenceItemDTO {
+  id: string;
+  label: string;
+  detail: string;
+  severity: "info" | "warn" | "crit";
+}
+
+export interface InstantFixDTO {
+  id: string;
+  title: string;
+  summary: string;
+  riskLevel: "SAFE" | "GUARDED";
+  actionType: "RUNBOOK_WEBHOOK" | "SMART_REPLAY" | "COPY_SNIPPET" | "ADAPTIVE_BACKOFF";
+  targetUrl?: string;
+  serviceId?: string;
+  snippetCode?: string;
+  snippetLanguage?: string;
+  snippetExplanation?: string;
+  diffBefore?: string;
+  diffAfter?: string;
+  suggestedIntervalSec?: number;
+  payloadPatch?: Record<string, unknown>;
+  repairedHeaders?: Record<string, string>;
+}
+
+export interface DiagnosticReportDTO {
+  rootCauseTitle: string;
+  confidence: "HIGH" | "MEDIUM" | "LOW";
+  category: "AVAILABILITY" | "LATENCY" | "SECURITY" | "PAYLOAD" | "RATE_LIMIT" | "ASSERTION";
+  summary: string;
+  evidenceChain: EvidenceItemDTO[];
+  instantFixes: InstantFixDTO[];
+  analyzedAt: string;
+}
+
+export interface HistoricalPrecedentDTO {
+  incidentId: string;
+  monitorName: string;
+  title: string;
+  resolutionNote: string;
+  downtimeSec: number;
+  timeToRecoverFormatted: string;
+  resolvedAt: string;
+  similarityReason: string;
+}
+
+export interface RemediationLogDTO {
+  id: string;
+  incidentId?: string | null;
+  webhookEventId?: string | null;
+  actionType: "RUNBOOK_WEBHOOK" | "SMART_REPLAY" | "COPY_SNIPPET" | "ADAPTIVE_BACKOFF";
+  title: string;
+  status: "EXECUTED" | "VERIFIED" | "FAILED";
+  executedBy: string;
+  responseCode?: number | null;
+  outputPreview?: string | null;
+  createdAt: string;
+}
+
 export type { IncidentStatus, SignatureStatus, SimMode };
