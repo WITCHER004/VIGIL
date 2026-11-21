@@ -1,0 +1,236 @@
+// Vigil — data model
+// Postgres (Neon / Supabase compatible). DATABASE_URL may be pooled; DIRECT_URL is used for migrations.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum HttpMethod {
+  GET
+  HEAD
+  POST
+  PUT
+  PATCH
+  DELETE
+  OPTIONS
+}
+
+enum MonitorStatus {
+  PENDING
+  OPERATIONAL
+  DEGRADED
+  DOWN
+  PAUSED
+}
+
+enum IncidentStatus {
+  INVESTIGATING
+  IDENTIFIED
+  RESOLVED
+}
+
+enum IncidentSeverity {
+  MINOR
+  MAJOR
+  CRITICAL
+}
+
+enum UpdateAuthor {
+  SYSTEM
+  OPERATOR
+}
+
+enum SignatureScheme {
+  NONE
+  STRIPE
+  GITHUB
+  RAZORPAY
+  GENERIC
+}
+
+enum SignatureStatus {
+  UNCHECKED
+  VALID
+  INVALID
+  MISSING
+}
+
+enum SimMode {
+  HEALTHY
+  LATENCY
+  OUTAGE
+}
+
+// ─── Status pages ─────────────────────────────────────────────────────────────
+
+model StatusPage {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  description String?
+  monitors    Monitor[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ─── Synthetic monitoring ─────────────────────────────────────────────────────
+
+model Monitor {
+  id                   String        @id @default(cuid())
+  name                 String
+  /// Absolute http(s) URL, or an internal demo path beginning with `/api/sim/`
+  /// which is resolved against the deployment origin at probe time.
+  url                  String
+  method               HttpMethod    @default(GET)
+  expectedStatus       Int           @default(200)
+  timeoutMs            Int           @default(10000)
+  intervalSec          Int           @default(60)
+  bodyContains         String?
+  /// Latency above this threshold marks a successful check as DEGRADED.
+  degradedThresholdMs  Int           @default(500)
+  isPaused             Boolean       @default(false)
+  status               MonitorStatus @default(PENDING)
+  consecutiveFailures  Int           @default(0)
+  consecutiveSuccesses Int           @default(0)
+  lastCheckedAt        DateTime?
+  lastLatencyMs        Int?
+  lastStatusCode       Int?
+
+  statusPageId String?
+  statusPage   StatusPage? @relation(fields: [statusPageId], references: [id], onDelete: SetNull)
+
+  checks    CheckRun[]
+  incidents Incident[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPaused, lastCheckedAt])
+  @@index([statusPageId])
+}
+
+model CheckRun {
+  id         String   @id @default(cuid())
+  monitorId  String
+  monitor    Monitor  @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  ok         Boolean
+  statusCode Int?
+  latencyMs  Int
+  statusOk   Boolean
+  /// null when no body assertion is configured
+  bodyOk     Boolean?
+  error      String?
+  /// "cron" | "live" | "manual" | "sweep" | "seed"
+  source     String   @default("cron")
+  checkedAt  DateTime @default(now())
+
+  @@index([monitorId, checkedAt(sort: Desc)])
+  @@index([checkedAt])
+}
+
+// ─── Incidents ────────────────────────────────────────────────────────────────
+
+model Incident {
+  id          String           @id @default(cuid())
+  monitorId   String
+  monitor     Monitor          @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  title       String
+  status      IncidentStatus   @default(INVESTIGATING)
+  severity    IncidentSeverity @default(MAJOR)
+  startedAt   DateTime         @default(now())
+  resolvedAt  DateTime?
+  downtimeSec Int?
+  updates     IncidentUpdate[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([monitorId, status])
+  @@index([status, startedAt(sort: Desc)])
+}
+
+model IncidentUpdate {
+  id         String         @id @default(cuid())
+  incidentId String
+  incident   Incident       @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  status     IncidentStatus
+  message    String
+  author     UpdateAuthor   @default(SYSTEM)
+  createdAt  DateTime       @default(now())
+
+  @@index([incidentId, createdAt])
+}
+
+// ─── Webhook inspector ────────────────────────────────────────────────────────
+
+model WebhookEndpoint {
+  id              String          @id @default(cuid())
+  name            String
+  token           String          @unique
+  signatureScheme SignatureScheme @default(NONE)
+  /// HMAC-SHA256 signing secret. Never returned in full by the API.
+  secret          String?
+  events          WebhookEvent[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model WebhookEvent {
+  id              String          @id @default(cuid())
+  endpointId      String
+  endpoint        WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  method          String
+  path            String
+  headers         Json
+  query           Json
+  sourceIp        String?
+  contentType     String?
+  sizeBytes       Int
+  rawBody         String
+  /// Parsed JSON body when the payload is valid JSON
+  jsonBody        Json?
+  /// Provider event name when detectable, e.g. "payment_intent.succeeded"
+  eventType       String?
+  signatureStatus SignatureStatus @default(UNCHECKED)
+  replays         WebhookReplay[]
+  receivedAt      DateTime        @default(now())
+
+  @@index([endpointId, receivedAt(sort: Desc)])
+  @@index([receivedAt])
+}
+
+model WebhookReplay {
+  id              String       @id @default(cuid())
+  eventId         String
+  event           WebhookEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  targetUrl       String
+  method          String
+  requestHeaders  Json
+  requestBody     String
+  responseStatus  Int?
+  responseHeaders Json?
+  responseBody    String?
+  latencyMs       Int?
+  error           String?
+  createdAt       DateTime     @default(now())
+
+  @@index([eventId, createdAt(sort: Desc)])
+}
+
+// ─── Chaos simulator ──────────────────────────────────────────────────────────
+
+/// Persisted mode for each built-in mock service under /api/sim/*.
+/// Stored in Postgres (not memory) so every serverless instance agrees.
+model SimService {
+  id        String   @id // e.g. "checkout-api"
+  label     String
+  mode      SimMode  @default(HEALTHY)
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,240 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Vigil — colour architecture
+   Channel variables (--c-*) feed Tailwind's `rgb(var() / alpha)` tokens.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Navy tonal steps */
+  --c-canvas: 10 15 30; /* #0A0F1E */
+  --c-surface: 15 22 41; /* #0F1629 */
+  --c-raised: 21 30 54; /* #151E36 */
+  --c-well: 7 11 22; /* #070B16 */
+
+  /* Structural ink */
+  --c-silver: 143 163 199; /* #8FA3C7 */
+  --c-steel: 95 115 150; /* #5F7396 — muted steel, p95 series */
+
+  /* Accent */
+  --c-copper: 232 116 59; /* #E8743B */
+
+  /* Readable ink */
+  --c-ink: 238 242 248; /* #EEF2F8 */
+  --c-body: 183 197 222; /* #B7C5DE */
+
+  /* Semantic signals */
+  --c-ok: 79 168 139; /* #4FA88B */
+  --c-warn: 212 162 76; /* #D4A24C — muted amber, distinct from the copper accent */
+  --c-crit: 214 82 70; /* #D65246 */
+
+  /* Lines & washes */
+  --hairline: rgb(143 163 199 / 0.16);
+  --hairline-strong: rgb(143 163 199 / 0.3);
+  --rule: rgb(143 163 199 / 0.14);
+  --copper-wash: rgb(232 116 59 / 0.12);
+  --backdrop: rgb(7 11 22 / 0.72);
+
+  /* Layout */
+  --topbar-h: 56px;
+  --rail-w: 240px;
+
+  color-scheme: dark;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Base
+   ─────────────────────────────────────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--hairline);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply min-h-dvh bg-canvas font-sans text-[14px] leading-relaxed text-body;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-normal text-ink;
+    font-optical-sizing: auto;
+    letter-spacing: -0.012em;
+  }
+
+  ::selection {
+    background: rgb(232 116 59 / 0.28);
+    color: rgb(var(--c-ink));
+  }
+
+  :focus-visible {
+    outline: 1.5px solid rgb(var(--c-copper));
+    outline-offset: 2px;
+  }
+
+  /* Hairline scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(143 163 199 / 0.22) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgb(143 163 199 / 0.2);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Components
+   ─────────────────────────────────────────────────────────────────────────── */
+@layer components {
+  /* Small label in Silver Blue — sentence case, no tracking */
+  .label {
+    @apply font-sans text-[12px] font-medium leading-4 text-silver;
+  }
+
+  /* Telemetry numerals — every latency, %, status code */
+  .num {
+    @apply font-mono;
+    font-variant-numeric: tabular-nums slashed-zero;
+    font-feature-settings: "tnum", "zero";
+  }
+
+  .panel {
+    @apply relative border border-hairline bg-surface;
+  }
+
+  .well {
+    @apply border border-hairline bg-well font-mono text-[12.5px] leading-[1.65];
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hairline-x {
+    @apply h-px w-full bg-rule;
+  }
+
+  /* Corner registration crosshairs for featured telemetry modules.
+     Usage: <div class="panel registered"> … </div>  */
+  .registered::before,
+  .registered::after {
+    content: "+";
+    position: absolute;
+    font-family: var(--font-mono), monospace;
+    font-size: 11px;
+    line-height: 1;
+    color: rgb(var(--c-silver) / 0.55);
+    pointer-events: none;
+  }
+  .registered::before {
+    top: -6px;
+    left: -4px;
+  }
+  .registered::after {
+    bottom: -6px;
+    right: -4px;
+  }
+
+  .btn {
+    @apply inline-flex h-9 select-none items-center justify-center gap-2 rounded-sm border px-3.5 font-sans text-[13px] font-medium transition-colors duration-200 ease-classic disabled:pointer-events-none disabled:opacity-45;
+  }
+  .btn-primary {
+    @apply btn border-copper bg-copper text-canvas hover:bg-[#F0834C];
+  }
+  .btn-ghost {
+    @apply btn border-hairline bg-transparent text-body hover:border-hairline-strong hover:bg-raised hover:text-ink;
+  }
+
+  .input {
+    @apply h-9 w-full rounded-sm border border-hairline bg-well px-3 font-mono text-[13px] text-ink placeholder:text-silver/50 transition-colors duration-200 ease-classic hover:border-hairline-strong focus:border-copper focus:outline-none;
+  }
+
+  /* Status dots */
+  .dot {
+    @apply inline-block h-1.5 w-1.5 shrink-0 rounded-full;
+  }
+
+  .select {
+    @apply input appearance-none bg-no-repeat pr-8;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%238FA3C7' stroke-width='1.5'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+  }
+
+  .textarea {
+    @apply input h-auto min-h-[8rem] resize-y py-2.5 leading-[1.6];
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Recharts — strip default chrome so charts inherit the drafting aesthetic
+   ─────────────────────────────────────────────────────────────────────────── */
+.recharts-cartesian-axis-tick-value {
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  fill: rgb(var(--c-silver) / 0.8);
+  font-variant-numeric: tabular-nums;
+}
+.recharts-cartesian-grid line {
+  stroke: var(--rule);
+}
+.recharts-surface:focus,
+.recharts-wrapper:focus,
+.recharts-sector:focus {
+  outline: none;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Print — the public status page should print clean on paper
+   ─────────────────────────────────────────────────────────────────────────── */
+@media print {
+  :root {
+    --c-canvas: 255 255 255;
+    --c-surface: 255 255 255;
+    --c-ink: 10 15 30;
+    --c-body: 40 48 66;
+    --c-silver: 90 104 130;
+    --hairline: rgb(10 15 30 / 0.25);
+    --rule: rgb(10 15 30 / 0.2);
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
