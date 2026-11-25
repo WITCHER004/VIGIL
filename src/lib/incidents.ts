@@ -1,4 +1,5 @@
 import "server-only";
+import { sendAlert } from "./alerts";
 import {
   IncidentSeverity,
   IncidentStatus,
@@ -165,7 +166,7 @@ export async function addOperatorUpdate(
   id: string,
   { message, status }: { message?: string; status?: IncidentStatus },
 ): Promise<IncidentWithTimeline> {
-  await db.$transaction(async (tx) => {
+  const resolved = await db.$transaction(async (tx) => {
     const current: Incident | null = await tx.incident.findUnique({ where: { id } });
     if (!current) throw notFound("Incident");
     const target = status ?? current.status;
@@ -197,7 +198,9 @@ export async function addOperatorUpdate(
         },
       },
     });
+    return resolving ? current.title : null;
   });
+  if (resolved) await sendAlert(`RESOLVED by operator: ${resolved}`);
   return getIncident(id);
 }
 

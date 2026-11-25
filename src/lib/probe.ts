@@ -1,4 +1,5 @@
 import "server-only";
+import { sendAlert } from "./alerts";
 import { MonitorStatus, type Monitor } from "@prisma/client";
 import { performance } from "node:perf_hooks";
 import { db } from "./db";
@@ -146,7 +147,7 @@ export async function probeMonitor(monitor: Monitor, source: ProbeSource, appOri
   const raw = await executeProbe(monitor, appOrigin);
   const checkedAt = new Date();
 
-  return db.$transaction(
+  const result = await db.$transaction(
     async (tx) => {
       // Serialise all state-machine work for this monitor across instances.
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${monitor.id}))`;
@@ -211,6 +212,14 @@ export async function probeMonitor(monitor: Monitor, source: ProbeSource, appOri
     },
     { maxWait: 5_000, timeout: 15_000 },
   );
+
+  // After commit, so a rolled-back transition never pages anyone.
+  if (result.incident.action === "open") {
+    await sendAlert(`DOWN: ${result.name} — ${result.error ?? `HTTP ${result.statusCode ?? "no response"}`}`);
+  } else if (result.incident.action === "resolve") {
+    await sendAlert(`RECOVERED: ${result.name} is passing checks again.`);
+  }
+  return result;
 }
 
 /**
@@ -264,4 +273,25 @@ export async function runSweep(
   await Promise.all(Array.from({ length: Math.min(concurrency, monitors.length) }, worker));
   results.sort((a, b) => a.name.localeCompare(b.name));
   return { results, errors };
+}
+
+/**
+ * Delete raw checks older than CHECK_RETENTION_DAYS (default 35). Long-range
+ * charts read MonitorDailyStat rollups; the status page reads 30 days of raw
+ * checks, so retention is clamped to at least 31 days. Deletes in batches so
+ * a large backlog never holds one giant lock.
+ */
+export async function pruneCheckRuns(budgetMs = 10_000): Promise<number> {
+  const days = Math.max(31, Number(process.env.CHECK_RETENTION_DAYS) || 35);
+  const cutoff = new Date(Date.now() - days * 86_400_000);
+  const deadline = Date.now() + budgetMs;
+  let total = 0;
+  for (;;) {
+    const deleted = await db.$executeRaw`
+      DELETE FROM "CheckRun" WHERE id IN (
+        SELECT id FROM "CheckRun" WHERE "checkedAt" < ${cutoff} LIMIT 5000
+      )`;
+    total += deleted;
+    if (deleted < 5000 || Date.now() > deadline) return total;
+  }
 }

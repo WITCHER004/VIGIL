@@ -37,6 +37,7 @@ The public status page lives at **`/status/vigil`**.
 - **Rate limiting** ([`src/lib/rate-limit.ts`](src/lib/rate-limit.ts)). A token bucket runs as a single atomic Lua script on Upstash Redis when it's configured. Otherwise it uses an in-memory bucket, which is also the fail-open fallback if Redis is unreachable. Expensive operator actions (probes, replays, edits) are throttled per IP.
 - **Webhook secrets** are returned in full only once, at creation or rotation. Signatures are compared in constant time, and Stripe signatures enforce a 5-minute timestamp tolerance.
 - **Cron** requires `Authorization: Bearer $CRON_SECRET`, compared in constant time.
+- **Operator sign-in** ([`src/middleware.ts`](src/middleware.ts)). With `VIGIL_OPERATOR_SECRET` set, every console page and API needs a signed session cookie (from `/unlock`) or the secret as a Bearer / `x-operator-secret` header. Signed-out pages redirect to `/unlock`; APIs return 401. Only the status page, webhook ingest, the read-only `/api/sim/*` demo services and cron stay public. Production refuses to serve the console without the secret; local dev without it stays open.
 
 ---
 
@@ -114,6 +115,9 @@ The seed prints a summary like `✔ Seeded 7 monitors · 10,943 checks · 6 inci
    | `DATABASE_URL` | Neon pooled connection string |
    | `DIRECT_URL` | Neon direct connection string |
    | `CRON_SECRET` | A long random string (`openssl rand -hex 32`) |
+   | `VIGIL_OPERATOR_SECRET` | Another long random string: the password for the console at `/unlock` |
+   | `ALERT_WEBHOOK_URL` | *(optional)* Slack or Discord incoming-webhook URL, pinged when an incident opens or resolves |
+   | `CHECK_RETENTION_DAYS` | *(optional, default 35, min 31)* Days of raw check history kept; older checks are pruned by cron |
    | `APP_URL` | Your production URL, e.g. `https://vigil-yourname.vercel.app` *(optional on Vercel, which falls back to the production domain)* |
    | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | *(optional)* From an [Upstash](https://console.upstash.com) Redis database, for a rate limit shared across all serverless instances |
 

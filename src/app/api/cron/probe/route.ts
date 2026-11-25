@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { ApiError, handler, json } from "@/lib/api";
 import { db } from "@/lib/db";
-import { claimDueMonitors, runSweep } from "@/lib/probe";
+import { claimDueMonitors, pruneCheckRuns, runSweep } from "@/lib/probe";
 import { refreshDailyStatPercentiles } from "@/lib/rollups";
 import { getAppOrigin } from "@/lib/utils";
 import { pruneAllWebhookEvents } from "@/lib/webhooks";
@@ -27,7 +27,7 @@ export const GET = handler(async (req: Request) => {
   if (!authorized(req)) throw new ApiError(401, "UNAUTHORIZED", "Missing or invalid cron secret.");
 
   const origin = getAppOrigin(req.url);
-  const deadline = Date.now() + 45_000;
+  const deadline = Date.now() + 40_000; // leaves ~20s for pruning + rollups below
   let probed = 0;
   const failures: { monitorId: string; error: string }[] = [];
   const incidents: { monitorId: string; action: string; incidentId: string | null }[] = [];
@@ -51,6 +51,11 @@ export const GET = handler(async (req: Request) => {
     return 0;
   });
 
+  const prunedChecks = await pruneCheckRuns().catch((err) => {
+    console.error("[cron] check pruning error:", err);
+    return 0;
+  });
+
   const rolledToday = await refreshDailyStatPercentiles(db, new Date()).catch((err) => {
     console.error("[cron] daily rollup refresh error:", err);
     return 0;
@@ -62,6 +67,7 @@ export const GET = handler(async (req: Request) => {
     incidents,
     errors: failures,
     prunedWebhookEvents,
+    prunedChecks,
     rolledMonitors: rolledToday,
     at: new Date().toISOString(),
   });
