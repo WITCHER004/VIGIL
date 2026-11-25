@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { THEME_STORAGE_KEY } from "@/lib/utils";
 
 export type Theme = "light" | "dark";
 
@@ -18,7 +19,6 @@ const ThemeContext = createContext<ThemeContextValue>({
   mounted: false,
 });
 
-const THEME_STORAGE_KEY = "vigil-gallery-theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (stored === "dark" || stored === "light") {
         setThemeState(stored);
       } else {
-        // Default to Daylight Gallery
+        // Default: Atelier Ivory
         setThemeState("light");
       }
     } catch {

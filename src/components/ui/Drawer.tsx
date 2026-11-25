@@ -111,7 +111,7 @@ export function Drawer({ open, onClose, title, eyebrow, description, width = "md
               <h2 id={titleId} className="pr-10 text-[28px] leading-tight">
                 {title}
               </h2>
-              {description && <p className="mt-2 text-[13px] text-body/80">{description}</p>}
+              {description && <p className="mt-2 text-[13px] text-body">{description}</p>}
               <button
                 type="button"
                 onClick={onClose}

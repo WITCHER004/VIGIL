@@ -17,7 +17,7 @@ type Filter = "all" | "failed";
 const PAGE = 25;
 
 function Assert({ value }: { value: boolean | null }) {
-  if (value == null) return <Minus size={13} strokeWidth={1.5} className="text-silver/40" aria-label="not asserted" />;
+  if (value == null) return <Minus size={13} strokeWidth={1.5} className="text-silver" aria-label="not asserted" />;
   return value ? <Check size={13} strokeWidth={1.75} className="text-ok" aria-label="passed" /> : <X size={13} strokeWidth={1.75} className="text-crit" aria-label="failed" />;
 }
 
@@ -152,7 +152,7 @@ export function CheckLedger({ monitorId, degradedThresholdMs }: { monitorId: str
                       </span>
                     </td>
                     <td className="px-3 py-2 text-silver">{c.source}</td>
-                    <td className="max-w-[320px] truncate py-2 pl-3 pr-5 text-[12px] text-[#E88A80]" title={c.error ?? undefined}>
+                    <td className="max-w-[320px] truncate py-2 pl-3 pr-5 text-[12px] text-crit" title={c.error ?? undefined}>
                       {c.error ?? ""}
                     </td>
                   </motion.tr>

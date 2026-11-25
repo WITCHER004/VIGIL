@@ -73,13 +73,13 @@ export function SegmentedTabs<T extends string>({
             >
               {item.label}
               {item.count != null && (
-                <span className={cn("num text-[12px]", active ? "text-body" : "text-silver/70")}>{item.count}</span>
+                <span className={cn("num text-[12px]", active ? "text-body" : "text-silver")}>{item.count}</span>
               )}
               {active && (
                 <motion.span
                   layoutId={NAV_INDICATOR_ID}
                   transition={indicatorTransition}
-                  className="absolute inset-x-2 -bottom-px h-[2px] bg-vermilion"
+                  className="absolute inset-x-2 -bottom-px h-[2px] bg-brass"
                 />
               )}
             </button>

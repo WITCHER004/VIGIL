@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LatencyChart } from "@/components/charts/LatencyChart";
+import { UptimeBarStrip } from "@/components/charts/UptimeBarStrip";
 import { InstantSolutionsPanel } from "@/components/diagnostics/InstantSolutionsPanel";
 import { DowntimeCounter, IncidentTimelineDrawer } from "@/components/incidents/IncidentTimelineDrawer";
 import { CheckLedger } from "@/components/monitors/CheckLedger";
@@ -23,7 +24,7 @@ import { Time } from "@/components/ui/Time";
 import { apiFetch } from "@/lib/client/api";
 import type { MonitorDetailDTO } from "@/lib/client/types";
 import { useMotionPreset } from "@/lib/motion";
-import { RANGE_CONFIG, TIME_RANGES, type TimeRange } from "@/lib/stats";
+import { RANGE_CONFIG, TIME_RANGES, utcDayKey, type DailyUptime, type TimeRange } from "@/lib/stats";
 import { cn, formatDuration, formatMs } from "@/lib/utils";
 
 const pct = (v: number) => `${v.toFixed(2)}%`;
@@ -31,7 +32,7 @@ const pct = (v: number) => `${v.toFixed(2)}%`;
 function Verdict({ ok }: { ok: boolean | null }) {
   if (ok == null)
     return (
-      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-silver/60">
+      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-silver">
         <Minus size={12} strokeWidth={1.5} /> Not set
       </span>
     );
@@ -57,6 +58,13 @@ export function MonitorDetailView({ id, initial }: { id: string; initial: Monito
   const [pausing, setPausing] = useState(false);
 
   const d = data ?? initial;
+  const { data: month } = useLiveResource<MonitorDetailDTO>(`/api/monitors/${id}?range=30D`);
+  const daily: DailyUptime[] | null = month
+    ? month.series.map((p) => {
+        const date = utcDayKey(p.t);
+        return { date, uptime: p.uptime, checks: p.checks, incidents: month.incidents.filter((i) => utcDayKey(i.startedAt) === date).length };
+      })
+    : null;
   const m = d.monitor;
   const s = d.stats;
   const last = d.lastCheck;
@@ -147,7 +155,12 @@ export function MonitorDetailView({ id, initial }: { id: string; initial: Monito
         <KpiCard label="p99" value={<AnimatedMetric value={s.p99} format={formatMs} minChars={7} />} footnote={`max ${formatMs(s.max)}`} />
       </motion.section>
 
-      <section className="panel registered mt-8 p-5 sm:p-6">
+      <section className="panel mt-8 p-5 sm:p-6">
+        <SectionHeading title="Uptime · last 30 days" label="One bar per UTC day · hover for checks and incidents" />
+        <div className="mt-6">{daily ? <UptimeBarStrip days={daily} /> : <div className="h-[60px] animate-pulse rounded-md bg-well" aria-hidden />}</div>
+      </section>
+
+      <section className="panel mt-8 p-5 sm:p-6">
         <SectionHeading
           title="Latency"
           label={`p50, p95 and p99 · ${RANGE_CONFIG[range].label.toLowerCase()}`}
@@ -162,40 +175,34 @@ export function MonitorDetailView({ id, initial }: { id: string; initial: Monito
         <div className="panel p-5 sm:p-6">
           <SectionHeading title="Last check" trailing={last ? <span className="num text-[12px] text-silver"><Time value={last.checkedAt} mode="datetime" /></span> : null} />
           <dl className="mt-5 divide-y divide-hairline border-y border-hairline">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-3.5">
-              <div>
-                <dt className="text-[13px] text-ink">Status code</dt>
-                <dd className="num mt-0.5 text-[12px] text-silver">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-3.5">
+                <dt className="col-start-1 text-[13px] text-ink">Status code</dt>
+                <dd className="col-start-1 num mt-0.5 text-[12px] text-silver">
                   expected <span className="text-ink">{m.expectedStatus}</span> · received{" "}
                   <span className={last?.statusOk ? "text-ink" : "text-crit"}>{last?.statusCode ?? "no response"}</span>
                 </dd>
-              </div>
-              <Verdict ok={last ? last.statusOk : null} />
+              <dd className="col-start-2 row-span-2 row-start-1 self-center"><Verdict ok={last ? last.statusOk : null} /></dd>
             </div>
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-3.5">
-              <div className="min-w-0">
-                <dt className="text-[13px] text-ink">Body contains</dt>
-                <dd className="num mt-0.5 truncate text-[12px] text-silver">{m.bodyContains ? <span className="text-body">{m.bodyContains}</span> : "no body assertion"}</dd>
-              </div>
-              <Verdict ok={last ? last.bodyOk : null} />
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-3.5">
+                <dt className="col-start-1 text-[13px] text-ink">Body contains</dt>
+                <dd className="col-start-1 num mt-0.5 truncate text-[12px] text-silver">{m.bodyContains ? <span className="text-body">{m.bodyContains}</span> : "no body assertion"}</dd>
+              <dd className="col-start-2 row-span-2 row-start-1 self-center"><Verdict ok={last ? last.bodyOk : null} /></dd>
             </div>
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-3.5">
-              <div>
-                <dt className="text-[13px] text-ink">Latency</dt>
-                <dd className="num mt-0.5 text-[12px] text-silver">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-3.5">
+                <dt className="col-start-1 text-[13px] text-ink">Latency</dt>
+                <dd className="col-start-1 num mt-0.5 text-[12px] text-silver">
                   {formatMs(last?.latencyMs)} against a {formatMs(m.degradedThresholdMs)} threshold
                 </dd>
-              </div>
-              <Verdict ok={last ? last.ok && last.latencyMs <= m.degradedThresholdMs : null} />
+              <dd className="col-start-2 row-span-2 row-start-1 self-center"><Verdict ok={last ? last.ok && last.latencyMs <= m.degradedThresholdMs : null} /></dd>
             </div>
             <div className="py-3.5">
-              <dt className="text-[13px] text-ink">Failure streak</dt>
-              <dd className="num mt-0.5 text-[12px] text-silver">
+              <dt className="col-start-1 text-[13px] text-ink">Failure streak</dt>
+              <dd className="col-start-1 num mt-0.5 text-[12px] text-silver">
                 {m.consecutiveFailures} consecutive failure{m.consecutiveFailures === 1 ? "" : "s"} · incident opens at 3
               </dd>
             </div>
           </dl>
-          {last?.error && <p className="num mt-4 border border-crit/30 bg-crit/[0.06] px-3 py-2 text-[12px] text-[#E88A80]">{last.error}</p>}
+          {last?.error && <p className="num mt-4 border border-crit/30 bg-crit/[0.06] px-3 py-2 text-[12px] text-crit">{last.error}</p>}
 
           <p className="label mb-3 mt-6">Response codes · {range}</p>
           <div className="flex flex-col gap-2">

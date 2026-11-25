@@ -3,88 +3,97 @@
 @tailwind utilities;
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Vigil — Kinetic Gallery Telemetry Visual Architecture
-   Combining MoMA / Swiss International Style with Linear / Teenage Engineering.
-   Daylight Gallery (Default) & Evening Vault (Dark Mode).
+   Vigil — Atelier Ivory (default) & Nocturne Obsidian
+   Quiet-luxury architectural palette: warm porcelain, espresso ink, brushed brass.
+   Token names are stable; only values change per theme, so every component
+   re-themes without edits. Channel form (R G B) enables Tailwind opacity: bg-brass/10.
    ─────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Daylight Gallery (Museum Linen & Archival Ink) */
-  --c-canvas: 244 241 234;        /* #F4F1EA — Gallery Linen */
-  --c-surface: 252 251 248;       /* #FCFBF8 — Exhibition Surface */
-  --c-raised: 255 255 255;        /* Elevated card / modal */
-  --c-well: 234 229 218;          /* #EAE5DA — Recessed Stone Well */
+  /* Surfaces */
+  --c-canvas: 247 245 240;        /* #F7F5F0 porcelain alabaster */
+  --c-surface: 253 252 249;       /* #FDFCF9 bone white — cards, tables, drawers */
+  --c-raised: 250 248 243;        /* hover / active rows */
+  --c-well: 237 234 226;          /* #EDEAE2 honed stone — code wells */
 
-  /* Structural Ink & Hairlines */
-  --c-ink: 18 18 18;              /* #121212 — Carbon Ink */
-  --c-body: 85 82 76;             /* #55524C — Graphite Ink */
-  --c-silver: 130 126 118;        /* Muted Structural Label Ink */
-  --c-steel: 100 96 89;           /* Secondary Hairline Ink */
+  /* Ink */
+  --c-ink: 25 24 22;              /* #191816 espresso charcoal */
+  --c-body: 98 94 86;             /* #625E56 taupe graphite */
+  --c-silver: 107 102 93;         /* #6B665D muted labels — ≥4.6:1 on canvas, surface and stone wells */
+  --c-steel: 199 192 178;         /* #C7C0B2 hairline emphasis */
 
-  /* Modernist Pigment Palette (Strictly Semantic) */
-  --c-viridian: 20 108 83;        /* #146C53 — Healthy / Operational / Verified */
-  --c-ochre: 212 138 23;          /* #D48A17 — Cadmium Ochre / Degraded / Caution */
-  --c-vermilion: 223 62 38;       /* #DF3E26 — Vermilion / Active Incident / Primary Focus */
-  --c-ultramarine: 31 68 156;     /* #1F449C — Ultramarine / Webhook / Interactive */
+  /* Accent */
+  --c-brass: 158 123 67;          /* #9E7B43 brushed brass */
 
-  /* Aliases for backwards compatibility */
+  /* Semantic pigments */
+  --c-viridian: 27 77 62;         /* #1B4D3E British racing green — healthy */
+  --c-ochre: 184 115 20;          /* #B87314 amber ochre — degraded */
+  --c-vermilion: 158 42 43;       /* #9E2A2B oxblood — outage / critical */
+  --c-ultramarine: var(--c-brass); /* legacy "interactive" pigment → accent */
+
+  /* Text-only shades: the spec pigments are kept for dots, bars and rules, but as small
+     text on ivory brass (≈3.3:1) and ochre (≈3.6:1) fail WCAG AA, so text uses deeper inks. */
+  --c-brass-text: 125 94 49;      /* #7D5E31 — ≥4.8:1 */
+  --c-warn-text: 150 94 16;       /* #965E10 — ≥4.6:1 */
+
+  /* Semantic aliases (components use these) */
   --c-ok: var(--c-viridian);
   --c-warn: var(--c-ochre);
   --c-crit: var(--c-vermilion);
-  --c-copper: var(--c-vermilion);
+  --c-copper: var(--c-brass);     /* legacy accent alias */
 
-  /* Lines & Borders */
-  --hairline: rgb(213 207 195 / 0.85);       /* #D5CFC3 architectural grid */
-  --hairline-strong: rgb(18 18 18 / 0.22);
-  --rule: rgb(213 207 195 / 0.65);
-  --copper-wash: rgb(223 62 38 / 0.08);
-  --backdrop: rgb(244 241 234 / 0.82);
+  /* Lines, washes, overlays */
+  --hairline: rgb(221 216 205);           /* #DDD8CD */
+  --hairline-strong: rgb(199 192 178);    /* #C7C0B2 */
+  --rule: rgb(221 216 205);
+  --copper-wash: rgb(158 123 67 / 0.10);  /* brass highlight fill */
+  --backdrop: rgb(25 24 22 / 0.32);       /* soft drawer dimming, no blur */
 
   /* Layout */
   --topbar-h: 56px;
-  --rail-w: 240px;
+  --rail-w: 220px;
 
   color-scheme: light;
 }
 
 [data-theme="dark"],
 .dark {
-  /* Evening Vault (Matte Obsidian & Bone Ink) */
-  --c-canvas: 17 18 20;           /* #111214 — Matte Obsidian */
-  --c-surface: 24 26 30;          /* #181A1E — Elevated Slate */
-  --c-raised: 32 35 41;           /* Deep Drawer / Hover */
-  --c-well: 12 13 15;             /* #0C0D0F — Recessed Well */
+  /* Nocturne Obsidian */
+  --c-canvas: 17 17 16;           /* #111110 smoked charcoal */
+  --c-surface: 25 24 22;          /* #191816 warm carbon */
+  --c-raised: 33 32 30;           /* hover / active rows */
+  --c-well: 12 12 11;             /* #0C0C0B obsidian well */
 
-  /* Structural Ink & Hairlines */
-  --c-ink: 242 239 233;           /* #F2EFE9 — Bone Ink */
-  --c-body: 155 150 141;          /* #9B968D — Muted Ash */
-  --c-silver: 130 135 145;        /* Muted Structural Label Ink */
-  --c-steel: 85 90 100;
+  --c-ink: 242 239 233;           /* #F2EFE9 warm ivory */
+  --c-body: 158 153 142;          /* #9E998E muted stone */
+  --c-silver: 145 140 130;        /* #918C82 labels — ≥4.7:1 on canvas, surface and raised rows */
+  --c-steel: 69 66 61;            /* #45423D */
 
-  /* Lifted Pigments (WCAG AA Contrast) */
-  --c-viridian: 43 168 132;       /* #2BA884 */
-  --c-ochre: 229 160 50;          /* #E5A032 */
-  --c-vermilion: 240 88 64;       /* #F05840 */
-  --c-ultramarine: 91 130 232;    /* #5B82E8 */
+  --c-brass: 207 168 102;         /* #CFA866 champagne gold */
 
-  /* Aliases */
+  --c-viridian: 69 165 133;       /* #45A585 emerald sage, lifted for AA on tinted badges */
+  --c-ochre: 217 148 41;          /* #D99429 warm amber */
+  --c-vermilion: 224 90 91;       /* #E05A5B velvet crimson, lifted for AA (spec #D64C4D was 4.2–4.5:1) */
+  --c-ultramarine: var(--c-brass);
+  --c-brass-text: var(--c-brass);
+  --c-warn-text: var(--c-ochre);
+
   --c-ok: var(--c-viridian);
   --c-warn: var(--c-ochre);
   --c-crit: var(--c-vermilion);
-  --c-copper: var(--c-vermilion);
+  --c-copper: var(--c-brass);
 
-  /* Lines & Borders */
-  --hairline: rgb(42 45 51 / 0.95);          /* #2A2D33 */
-  --hairline-strong: rgb(242 239 233 / 0.22);
-  --rule: rgb(42 45 51 / 0.75);
-  --copper-wash: rgb(240 88 64 / 0.12);
-  --backdrop: rgb(17 18 20 / 0.85);
+  --hairline: rgb(43 41 38);              /* #2B2926 */
+  --hairline-strong: rgb(69 66 61);
+  --rule: rgb(43 41 38);
+  --copper-wash: rgb(207 168 102 / 0.12);
+  --backdrop: rgb(0 0 0 / 0.5);
 
   color-scheme: dark;
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Base Typography & Surfaces
+   Base
    ─────────────────────────────────────────────────────────────────────────── */
 @layer base {
   *,
@@ -111,25 +120,25 @@
     letter-spacing: -0.015em;
   }
 
-  /* Universal Tabular Numerals */
+  /* Tabular numerals for every latency, %, status code, timestamp and payload */
   .num,
+  .font-mono,
   [data-tabular-nums="true"],
   .tabular-nums {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1, "cv01" 1;
+    font-feature-settings: "tnum" 1;
   }
 
   ::selection {
-    background: rgb(var(--c-vermilion) / 0.25);
+    background: rgb(var(--c-brass) / 0.22);
     color: rgb(var(--c-ink));
   }
 
   :focus-visible {
-    outline: 2px solid rgb(var(--c-vermilion));
+    outline: 2px solid rgb(var(--c-brass));
     outline-offset: 2px;
   }
 
-  /* Fine Museum Hairline Scrollbars */
   * {
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--c-body) / 0.25) transparent;
@@ -140,68 +149,84 @@
   }
   *::-webkit-scrollbar-thumb {
     background: rgb(var(--c-body) / 0.2);
-    border-radius: 2px;
+    border-radius: 3px;
   }
 }
 
+/* Small text in accent/warning colours uses the AA-safe text shades. */
+:root .text-brass,
+:root .text-copper,
+:root .text-ultramarine {
+  color: rgb(var(--c-brass-text));
+}
+:root .text-warn,
+:root .text-ochre {
+  color: rgb(var(--c-warn-text));
+}
+
 /* ───────────────────────────────────────────────────────────────────────────
-   Tactile Museum Paper Grain Texture Overlay
+   Paper grain — ultra-subtle fixed fractal noise
    ─────────────────────────────────────────────────────────────────────────── */
 .paper-grain {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
 }
 
-[data-theme="dark"] .paper-grain,
-.dark .paper-grain {
-  opacity: 0.025;
-}
-
 /* ───────────────────────────────────────────────────────────────────────────
-   Component Primitives (Swiss Layout & Modern Art Tokens)
+   Component primitives
    ─────────────────────────────────────────────────────────────────────────── */
 @layer components {
-  /* Architectural Micro Kicker */
+  /* Uppercase micro-kicker */
   .label {
     @apply font-sans text-micro font-semibold uppercase text-silver;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
   }
 
-  /* Gallery Exhibition Surface */
   .panel {
-    @apply relative border border-hairline bg-surface rounded-[2px] transition-colors duration-200;
+    @apply relative rounded-md border border-hairline bg-surface transition-colors duration-200;
   }
 
-  /* Interactive Hover Card */
   .panel-interactive {
-    @apply cursor-pointer transition-all duration-200 hover:border-hairline-strong hover:bg-surface;
+    @apply cursor-pointer transition-colors duration-200 hover:border-hairline-strong hover:bg-raised;
   }
 
-  /* Recessed Stone Well */
   .well {
-    @apply border border-hairline bg-well font-mono text-[13px] rounded-[2px];
+    @apply rounded-md border border-hairline bg-well font-mono text-[13px];
   }
 
-  /* Tactile Buttons */
+  /* Primary: espresso-on-ivory / ivory-on-obsidian. Brass fails AA as a text
+     background (≈3.9:1), so it stays on indicators, rings and fills. */
   .btn-primary {
-    @apply inline-flex h-9 items-center justify-center gap-2 rounded-[2px] border border-vermilion bg-vermilion px-3.5 text-[13px] font-medium text-white shadow-sm transition-all duration-150 hover:opacity-90 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-md border border-ink bg-ink px-3.5 text-[13px] font-medium text-canvas transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-ghost {
-    @apply inline-flex h-9 items-center justify-center gap-2 rounded-[2px] border border-hairline bg-surface px-3.5 text-[13px] font-medium text-ink transition-all duration-150 hover:border-hairline-strong hover:bg-well active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-md border border-hairline bg-surface px-3.5 text-[13px] font-medium text-ink transition-[background-color,border-color,transform] duration-150 hover:border-hairline-strong hover:bg-well active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-subtle {
-    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-[2px] px-2.5 text-[12px] font-medium text-body transition-colors hover:bg-well hover:text-ink active:scale-[0.985];
+    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2.5 text-[12px] font-medium text-body transition-colors hover:bg-well hover:text-ink active:scale-[0.985];
   }
 
-  /* Status Indicator Bullets */
   .dot {
     @apply inline-block h-2 w-2 rounded-full;
+  }
+
+  /* Form fields — used by every drawer, filter and composer */
+  .input {
+    @apply h-9 w-full rounded-md border border-hairline bg-surface px-3 font-mono text-[13px] text-ink transition-colors duration-150 placeholder:text-silver hover:border-hairline-strong focus:border-brass focus:outline-none disabled:opacity-50;
+  }
+  .select {
+    @apply input appearance-none bg-no-repeat pr-8 font-sans;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%23736E64' stroke-width='1.5'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+  }
+  .textarea {
+    @apply input h-auto min-h-[8rem] resize-y py-2.5 leading-relaxed;
   }
 }

@@ -19,7 +19,7 @@ function highlightLine(line: string, lineIndex: number): ReactNode[] {
     const idx = m.index ?? 0;
     if (idx > last) out.push(line.slice(last, idx));
     const tok = m[0];
-    let cls = "text-silver/50";
+    let cls = "text-silver";
     let text: string = tok;
     if (tok.startsWith('"')) {
       if (m[2]) {
@@ -38,9 +38,9 @@ function highlightLine(line: string, lineIndex: number): ReactNode[] {
       }
       cls = "text-ink";
     } else if (tok === "true" || tok === "false" || tok === "null") {
-      cls = "text-viridian font-semibold";
+      cls = "text-ok";
     } else if (/^-?\d/.test(tok)) {
-      cls = "text-vermilion";
+      cls = "text-brass";
     }
     out.push(
       <span key={`${lineIndex}-${i++}`} className={cls}>
@@ -80,11 +80,11 @@ export function JsonView({ value, className, maxHeight = 520 }: JsonViewProps) {
   const gutter = String(lines.length).length;
 
   return (
-    <div className={cn("well overflow-auto", className)} style={{ maxHeight }}>
+    <div className={cn("well overflow-auto", className)} style={{ maxHeight }} tabIndex={0} role="region" aria-label="JSON content">
       <pre className="grid min-w-max py-3" style={{ gridTemplateColumns: `${gutter + 2}ch 1fr` }}>
         {lines.map((line, i) => (
           <Fragment key={i}>
-            <span className="select-none pr-3 text-right text-silver/30">{i + 1}</span>
+            <span className="select-none pr-3 text-right text-silver">{i + 1}</span>
             <code className="pr-4 text-body">{isJson ? highlightLine(line, i) : line}</code>
           </Fragment>
         ))}

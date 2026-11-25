@@ -147,16 +147,16 @@ export function SimulatorDock() {
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0, transition: transitionClassic(0.4) }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, transition: transitionClassic(0.25) }}
-            className="flex max-h-[min(80dvh,720px)] w-full flex-col rounded-[2px] border border-hairline-strong bg-surface shadow-placard sm:w-[420px]"
+            className="flex max-h-[min(80dvh,720px)] w-full flex-col rounded-md border border-hairline-strong bg-surface shadow-placard sm:w-[420px]"
           >
             <header className="flex items-center justify-between border-b border-hairline bg-well/40 px-5 py-3.5">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-vermilion/10 text-vermilion border border-vermilion/20">
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-brass/10 text-brass border border-brass/25">
                   <FlaskConical size={13} strokeWidth={1.8} />
                 </div>
                 <div>
-                  <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-silver">Tactile Instrument</p>
-                  <h2 className="font-display text-[19px] font-normal leading-tight text-ink">Simulator Dock</h2>
+                  <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-silver">Demo</p>
+                  <h2 className="font-display text-[19px] font-normal leading-tight text-ink">Live demo controls</h2>
                 </div>
               </div>
               <button
@@ -184,7 +184,7 @@ export function SimulatorDock() {
                 </div>
                 <AnimatePresence initial={false}>
                   {sweep && (
-                    <motion.ul initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} transition={transitionClassic(0.35)} className="mt-3 overflow-hidden rounded-[2px] border border-hairline bg-well/50 p-2.5">
+                    <motion.ul initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} transition={transitionClassic(0.35)} className="mt-3 overflow-hidden rounded-md border border-hairline bg-well/50 p-2.5">
                       {sweep.results.map((r) => (
                         <li key={r.monitorId} className="flex items-center justify-between gap-3 py-1 text-[12px]">
                           <span className="flex min-w-0 items-center gap-2">
@@ -212,7 +212,7 @@ export function SimulatorDock() {
                   {services.map((svc) => {
                     const monitorStatus = svc.monitors[0]?.status;
                     return (
-                      <div key={svc.id} className="rounded-[2px] border border-hairline bg-well/30 p-2.5">
+                      <div key={svc.id} className="rounded-md border border-hairline bg-well/30 p-2.5">
                         <div className="mb-2 flex items-center justify-between gap-2">
                           <span className="font-mono text-[11px] font-medium text-ink">{svc.path}</span>
                           {monitorStatus && <StatusBadge status={monitorStatus} className="h-[18px]" />}
@@ -257,7 +257,7 @@ export function SimulatorDock() {
                       type="button"
                       onClick={() => void fire(p)}
                       disabled={busy === p}
-                      className="group flex min-w-0 flex-col items-start gap-1 rounded-[2px] border border-hairline bg-surface p-2 text-left transition-colors hover:border-hairline-strong hover:bg-well active:scale-[0.98]"
+                      className="group flex min-w-0 flex-col items-start gap-1 rounded-md border border-hairline bg-surface p-2 text-left transition-colors hover:border-hairline-strong hover:bg-well active:scale-[0.98]"
                     >
                       <span className="flex items-center gap-1.5 text-[12px] font-medium text-ink">
                         <Send size={11} strokeWidth={1.5} className="text-ultramarine" />
@@ -301,14 +301,14 @@ export function SimulatorDock() {
         aria-expanded={open}
         aria-controls="simulator-dock"
         className={cn(
-          "flex h-9 items-center gap-2 rounded-[2px] border px-3.5 text-[12px] font-medium shadow-placard transition-all duration-150 active:scale-95",
+          "flex h-9 items-center gap-2 rounded-full border px-4 text-[12px] font-medium shadow-placard transition-[border-color,color,transform] duration-150 active:scale-[0.985]",
           open
-            ? "border-vermilion bg-surface text-ink font-semibold"
-            : "border-hairline-strong bg-surface text-body hover:border-ink hover:text-ink",
+            ? "border-brass bg-surface text-ink"
+            : "border-brass/50 bg-surface text-body hover:border-brass hover:text-ink",
         )}
       >
-        <FlaskConical size={14} strokeWidth={1.8} className="text-vermilion" />
-        <span>Simulator</span>
+        <FlaskConical size={14} strokeWidth={1.75} className="text-brass" />
+        <span>Live demo</span>
       </button>
     </div>
   );

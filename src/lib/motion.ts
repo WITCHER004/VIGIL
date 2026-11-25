@@ -2,13 +2,14 @@ import { useReducedMotion, type Transition, type Variants } from "framer-motion"
 import { useMemo } from "react";
 
 /**
- * Vigil Kinetic Gallery Motion System
- * Combining Alexander Calder kinetic balance with Swiss typographic precision.
- * Respects prefers-reduced-motion everywhere.
+ * Vigil motion system — weighted, smooth, unhurried. Never bouncy.
+ * Respects prefers-reduced-motion via useMotionPreset().
  */
 
-export const EASE_GALLERY = [0.19, 1, 0.22, 1] as const;
-export const EASE_CLASSIC = [0.22, 1, 0.36, 1] as const;
+export const EASE_ATELIER = [0.22, 1, 0.36, 1] as const;
+/** Legacy aliases — same curve, kept so existing imports keep working. */
+export const EASE_GALLERY = EASE_ATELIER;
+export const EASE_CLASSIC = EASE_ATELIER;
 
 export const SPRING_MOBILE = {
   type: "spring",
@@ -17,12 +18,13 @@ export const SPRING_MOBILE = {
   mass: 0.9,
 } as const satisfies Transition;
 
-export const SPRING_SUBTLE = {
+export const SPRING_PRECISION = {
   type: "spring",
   stiffness: 320,
   damping: 32,
   mass: 0.9,
 } as const satisfies Transition;
+export const SPRING_SUBTLE = SPRING_PRECISION;
 
 export const DURATION = {
   instant: 0.12,
@@ -79,7 +81,7 @@ export const maskedTitleReveal: Variants = {
 
 export const titleReveal: Variants = {
   hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: transitionGallery(DURATION.base) },
+  visible: { opacity: 1, y: 0, transition: transitionGallery(0.45) },
 };
 
 export const fadeIn: Variants = {
@@ -119,8 +121,8 @@ export const drawerSlide: Variants = {
 
 export const microTap = { scale: 0.985 };
 
-export const NAV_INDICATOR_ID = "gallery-nav-indicator";
-export const TAB_INDICATOR_ID = "gallery-tab-indicator";
+export const NAV_INDICATOR_ID = "brass-nav-indicator";
+export const TAB_INDICATOR_ID = "brass-tab-indicator";
 
 /**
  * Hook providing motion presets with automatic reduced-motion fallback.
@@ -140,7 +142,7 @@ export function useMotionPreset() {
         backdrop: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
         drawerPanel: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
         feedItem: { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 } },
-        digitRoll: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
+        digitRoll: { enter: { opacity: 1 }, center: { opacity: 1 }, exit: { opacity: 0, transition: { duration: 0 } } },
         stagger: { hidden: {}, visible: {} },
         staggerContainer: (_delay = 0, _stagger = 0) => ({ hidden: {}, visible: {} }),
         cardLift: undefined,
@@ -152,7 +154,7 @@ export function useMotionPreset() {
 
     return {
       reduce: false,
-      indicatorTransition: SPRING_MOBILE,
+      indicatorTransition: SPRING_PRECISION,
       ruleVariants: ruleUnfurl,
       ruleUnfurl,
       titleReveal,
@@ -160,11 +162,16 @@ export function useMotionPreset() {
       backdrop: fadeIn,
       drawerPanel: drawerSlide,
       feedItem: feedFlash,
-      digitRoll: { hidden: { opacity: 0, y: 4 }, visible: { opacity: 1, y: 0, transition: transitionGallery(0.2) } },
+      // AnimatedMetric animates enter → center → exit, with custom = roll direction (1 up, -1 down).
+      digitRoll: {
+        enter: (d: 1 | -1 = 1) => ({ y: d * 8, opacity: 0 }),
+        center: { y: 0, opacity: 1, transition: transitionGallery(0.42) },
+        exit: (d: 1 | -1 = 1) => ({ y: d * -8, opacity: 0, transition: transitionGallery(0.28) }),
+      } satisfies Variants,
       stagger: staggerContainer(),
       staggerContainer,
       cardLift: { y: -2 },
-      barLift: { y: -3 },
+      barLift: { y: -2 },
       microTap,
       transition: transitionGallery(),
     };

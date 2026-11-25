@@ -26,9 +26,14 @@ export class ApiClientError extends Error {
 
 export interface ApiFetchInit extends Omit<RequestInit, "body"> {
   json?: unknown;
+  /** Background calls (live polling) set this so a 401 never pops the unlock modal. */
+  quietAuth?: boolean;
 }
 
-export async function apiFetch<T>(path: string, { json, headers, ...init }: ApiFetchInit = {}): Promise<T> {
+/** Window event the app shell listens for to open the Operator Session Unlock modal. */
+export const OPERATOR_REQUIRED_EVENT = "vigil:operator-required";
+
+export async function apiFetch<T>(path: string, { json, headers, quietAuth, ...init }: ApiFetchInit = {}): Promise<T> {
   const res = await fetch(path, {
     ...init,
     headers: { Accept: "application/json", ...(json !== undefined ? { "Content-Type": "application/json" } : {}), ...headers },
@@ -45,6 +50,10 @@ export async function apiFetch<T>(path: string, { json, headers, ...init }: ApiF
     }
   }
   if (!res.ok) {
+    // A user action hit an operator-only route: ask the shell to offer the unlock modal.
+    if (res.status === 401 && !quietAuth && path !== "/api/auth/operator" && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(OPERATOR_REQUIRED_EVENT));
+    }
     const err = (data as { error?: { code?: string; message?: string; details?: unknown } } | null)?.error;
     throw new ApiClientError(res.status, err?.code ?? `HTTP_${res.status}`, err?.message ?? res.statusText, err?.details, data);
   }

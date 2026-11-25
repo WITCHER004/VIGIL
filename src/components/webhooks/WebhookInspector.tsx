@@ -2,9 +2,11 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, RotateCcw, Webhook } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTelemetry } from "@/components/providers/TelemetryProvider";
 import { InstantSolutionsPanel } from "@/components/diagnostics/InstantSolutionsPanel";
+import { verdictFromSignature, WebhookPipeline, type PipelineVerdict } from "@/components/graphics/WebhookPipeline";
 import { CopyField } from "@/components/ui/CopyField";
 import { FormError } from "@/components/ui/Field";
 import { HeartbeatRipple, toneForStatus, TONE_RGB } from "@/components/ui/HeartbeatRipple";
@@ -69,7 +71,7 @@ function RateMeter({ meter }: { meter: EndpointDetailDTO["rateLimit"] | null }) 
           />
         ))}
       </div>
-      <p className="mt-1.5 text-[12px] text-silver/70">
+      <p className="mt-1.5 text-[12px] text-silver">
         Excess requests receive <span className="num">429</span> + <span className="num">Retry-After</span> · {meter.backend === "upstash" ? "Upstash Redis" : "in-memory"} backend
       </p>
     </div>
@@ -145,6 +147,17 @@ export function WebhookInspector({ className }: { className?: string }) {
   const [tab, setTab] = useState<DetailTab>("payload");
   const [replayOpen, setReplayOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [pipe, setPipe] = useState<{ pulse: number; verdict: PipelineVerdict | null }>({ pulse: 0, verdict: null });
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Header "New endpoint" links here with ?new=1: open the form, then drop the param.
+  useEffect(() => {
+    if (params.get("new") !== "1") return;
+    setCreating(true);
+    router.replace(pathname, { scroll: false });
+  }, [params, router, pathname]);
   const [revealed, setRevealed] = useState<{ id: string; secret: string } | null>(null);
   const [streamBeat, setStreamBeat] = useState(0);
   const [expandedReplay, setExpandedReplay] = useState<string | null>(null);
@@ -239,6 +252,7 @@ export function WebhookInspector({ className }: { className?: string }) {
     });
     setFresh((prev) => new Set([...prev, ...res.events.map((e) => e.id)]));
     setStreamBeat((b) => b + 1);
+    setPipe((p) => ({ pulse: p.pulse + 1, verdict: verdictFromSignature(res.events[0]!.signatureStatus) }));
     setSelectedId((cur) => cur ?? res.events[0]!.id);
     loadMeter().catch(() => {});
   }, [loadMeter]);
@@ -282,6 +296,7 @@ export function WebhookInspector({ className }: { className?: string }) {
   };
 
   const onReplayed = (replay: ReplayDTO) => {
+    setPipe((p) => ({ pulse: p.pulse + 1, verdict: p.verdict }));
     setDetail((d) => (d ? { ...d, event: { ...d.event, replays: [replay, ...d.event.replays] } } : d));
     setEvents((prev) => prev.map((e) => (e.id === replay.eventId ? { ...e, replayCount: e.replayCount + 1 } : e)));
   };
@@ -293,6 +308,8 @@ export function WebhookInspector({ className }: { className?: string }) {
   const headers = (ev?.headers ?? {}) as Record<string, string>;
 
   return (
+    <>
+    <WebhookPipeline pulse={pipe.pulse} verdict={pipe.verdict ?? verdictFromSignature(detail?.event.signatureStatus)} className="mb-4" />
     <div className={cn("panel grid min-h-[680px] grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]", className)}>
       {/* ── Left pane ──────────────────────────────────────────────────── */}
       <aside className="flex min-h-0 min-w-0 flex-col border-b border-hairline lg:border-b-0 lg:border-r">
@@ -316,13 +333,14 @@ export function WebhookInspector({ className }: { className?: string }) {
               />
             )}
           </AnimatePresence>
-          <ul className="mt-3 flex flex-col gap-px" role="listbox" aria-label="Capture endpoints">
+          <ul className="mt-3 flex flex-col gap-px" aria-label="Capture endpoints">
             {endpoints.map((e) => {
               const active = e.id === endpointId;
               return (
-                <li key={e.id} role="option" aria-selected={active}>
+                <li key={e.id}>
                   <button
                     type="button"
+                    aria-current={active ? "true" : undefined}
                     onClick={() => selectEndpoint(e.id)}
                     className={cn(
                       "relative flex w-full items-center justify-between gap-3 py-2 pl-3 pr-2 text-left transition-colors duration-200",
@@ -365,14 +383,14 @@ export function WebhookInspector({ className }: { className?: string }) {
             <HeartbeatRipple beat={streamBeat} tone={live ? "copper" : "idle"} size={6} />
             Live stream
           </p>
-          <span className="num text-[12px] text-silver/70">{live ? `polling ${STREAM_POLL_MS / 1000}s` : "paused"}</span>
+          <span className="num text-[12px] text-silver">{live ? `polling ${STREAM_POLL_MS / 1000}s` : "paused"}</span>
         </div>
         <div className="min-h-[260px] flex-1 overflow-y-auto lg:min-h-0">
           {events.length === 0 && (
             <div className="px-5 py-10 text-center">
-              <Webhook size={20} strokeWidth={1.5} className="mx-auto text-silver/50" />
+              <Webhook size={20} strokeWidth={1.5} className="mx-auto text-silver" />
               <p className="mt-3 text-[13px] text-silver">No requests captured yet</p>
-              <p className="mt-1 text-[12px] text-silver/70">Send one with curl, or fire a sample from the simulator</p>
+              <p className="mt-1 text-[12px] text-silver">Send one with curl, or fire a sample from the simulator</p>
             </div>
           )}
           <motion.ul layout className="flex flex-col">
@@ -398,7 +416,7 @@ export function WebhookInspector({ className }: { className?: string }) {
                       }}
                       className={cn(
                         "relative block w-full px-4 py-3 text-left transition-colors duration-150",
-                        active ? "bg-surface font-medium border-l-[3px] border-l-vermilion shadow-sm" : "hover:bg-well/40 text-body",
+                        active ? "bg-surface font-medium border-l-[2px] border-l-brass" : "hover:bg-well/40 text-body",
                       )}
                       aria-current={active}
                     >
@@ -436,7 +454,7 @@ export function WebhookInspector({ className }: { className?: string }) {
           <div className="grid flex-1 place-items-center p-10 text-center">
             <div>
               <p className="text-[15px] text-body">{detailLoading ? "Loading…" : "Select a captured request"}</p>
-              <p className="mt-2 text-[13px] text-silver/70">Payload, headers, HMAC verdict and replay history appear here</p>
+              <p className="mt-2 text-[13px] text-silver">Payload, headers, HMAC verdict and replay history appear here</p>
             </div>
           </div>
         ) : (
@@ -477,7 +495,7 @@ export function WebhookInspector({ className }: { className?: string }) {
                 <StatusBadge status={ev.signatureStatus} />
                 <p className="text-[12px] text-silver">
                   {SIGNATURE_COPY[ev.signatureStatus]}
-                  {detail?.endpoint.signatureScheme !== "NONE" && <span className="text-silver/70"> · {SCHEME_NAME[detail!.endpoint.signatureScheme]} scheme</span>}
+                  {detail?.endpoint.signatureScheme !== "NONE" && <span className="text-silver"> · {SCHEME_NAME[detail!.endpoint.signatureScheme]} scheme</span>}
                 </p>
               </div>
             </header>
@@ -512,7 +530,7 @@ export function WebhookInspector({ className }: { className?: string }) {
               ]}
             />
 
-            <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+            <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6" tabIndex={0} role="region" aria-label="Request detail">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div key={`${ev.id}-${tab}`} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0, transition: transitionClassic(0.3) }} exit={{ opacity: 0, transition: { duration: 0.12 } }}>
                   {tab === "payload" && (
@@ -575,7 +593,7 @@ export function WebhookInspector({ className }: { className?: string }) {
                                 <span className="num block truncate text-[12px] text-ink">
                                   {r.method} {r.targetUrl}
                                 </span>
-                                {r.error && <span className="block truncate text-[12px] text-[#E88A80]">{r.error}</span>}
+                                {r.error && <span className="block truncate text-[12px] text-crit">{r.error}</span>}
                               </span>
                               <span className="num text-right text-[12px] text-silver">
                                 {formatMs(r.latencyMs)}
@@ -606,5 +624,6 @@ export function WebhookInspector({ className }: { className?: string }) {
 
       <ReplayPanel open={replayOpen} onClose={() => setReplayOpen(false)} detail={detail} onReplayed={onReplayed} />
     </div>
+    </>
   );
 }

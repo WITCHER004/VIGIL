@@ -93,8 +93,8 @@ export function MonitorTable({ monitors, variant = "compact", onEdit, onChanged,
                       <Link href={`/monitors/${m.id}`} className="block truncate text-[14px] text-ink transition-colors hover:text-ink">
                         {m.name}
                       </Link>
-                      <p className="num truncate text-[12px] text-silver/80" title={m.url}>
-                        <span className="text-silver/60">{m.method}</span> {m.url}
+                      <p className="num truncate text-[12px] text-silver" title={m.url}>
+                        <span className="text-silver">{m.method}</span> {m.url}
                       </p>
                     </div>
                   </div>
@@ -127,7 +127,7 @@ export function MonitorTable({ monitors, variant = "compact", onEdit, onChanged,
                   <span className="block text-[13px] text-body">
                     <AnimatedMetric value={m.lastLatencyMs} format={ms} />
                   </span>
-                  <span className="num block text-[12px] text-silver/70">
+                  <span className="num block text-[12px] text-silver">
                     {m.lastCheckedAt ? <Time value={m.lastCheckedAt} /> : "never"}
                     {full && ` · ${m.intervalSec}s`}
                   </span>

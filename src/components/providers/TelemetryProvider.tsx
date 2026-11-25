@@ -91,7 +91,7 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
       inFlight.current = true;
       setSweeping(true);
       try {
-        const res = await apiFetch<SweepResponse>("/api/probe/sweep", { method: "POST", json: { scope } });
+        const res = await apiFetch<SweepResponse>("/api/probe/sweep", { method: "POST", json: { scope }, quietAuth: scope === "due" });
         registerResults(res.results);
         setLastSweepAt(Date.now());
         return res;

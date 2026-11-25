@@ -1,15 +1,15 @@
-import { Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { JetBrains_Mono, Newsreader, Plus_Jakarta_Sans } from "next/font/google";
 
 /**
- * Modern Art Typography Architecture
- * - Instrument Serif: Expressive exhibition display headlines & italic accents (MoMA / editorial style)
- * - Plus Jakarta Sans: Swiss International Typographic Style for UI controls, navigation & micro-labels
- * - JetBrains Mono: Tabular telemetry, timestamps, latency figures, HTTP codes & JSON viewers
+ * - Newsreader: editorial display headings, with subtle italic emphasis
+ * - Plus Jakarta Sans: interface, navigation, body copy and micro-kickers
+ * - JetBrains Mono: telemetry, latency, timestamps, status codes and JSON
+ * All three are variable fonts, so no weight list is needed.
  */
 
-export const fontDisplay = Instrument_Serif({
+export const fontDisplay = Newsreader({
   subsets: ["latin"],
-  weight: "400",
+  style: ["normal", "italic"],
   variable: "--font-display",
   display: "swap",
 });

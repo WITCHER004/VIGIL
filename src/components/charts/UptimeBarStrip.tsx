@@ -72,12 +72,12 @@ export function UptimeBarStrip({ days, height = 34, className, showScale = true 
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 2, transition: { duration: 0.08 } }}
               transition={{ duration: 0.12 }}
-              className="pointer-events-none absolute bottom-full z-20 mb-3 w-[204px] -translate-x-1/2 rounded-[2px] border border-hairline-strong bg-surface p-3 shadow-placard"
+              className="pointer-events-none absolute bottom-full z-20 mb-3 w-[204px] -translate-x-1/2 rounded-md border border-hairline-strong bg-surface p-3 shadow-placard"
               style={{ left: `${((hover + 0.5) / days.length) * 100}%` }}
             >
               <div className="flex items-center justify-between">
                 <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-silver">
-                  Placard · {formatDayKey(active.date)}
+                  {formatDayKey(active.date)}
                 </p>
                 <span
                   className={cn(
@@ -112,7 +112,7 @@ export function UptimeBarStrip({ days, height = 34, className, showScale = true 
         </AnimatePresence>
       </div>
       {showScale && (
-        <div className="label mt-2 flex justify-between text-silver/70">
+        <div className="label mt-2 flex justify-between text-silver">
           <span>{days.length} days ago</span>
           {avg != null && <span className="num normal-case tracking-normal">{avg.toFixed(2)}% average</span>}
           <span>Today</span>

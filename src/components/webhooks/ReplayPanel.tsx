@@ -201,7 +201,7 @@ export function ReplayPanel({ open, onClose, detail, onReplayed }: ReplayPanelPr
             </button>
           </div>
           <div className="well divide-y divide-hairline">
-            {rows.length === 0 && <p className="px-3 py-2.5 text-silver/70">No forwarded headers</p>}
+            {rows.length === 0 && <p className="px-3 py-2.5 text-silver">No forwarded headers</p>}
             {rows.map((row) => (
               <div key={row.id} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)_28px] items-center gap-2 px-2 py-1">
                 <input
@@ -222,7 +222,7 @@ export function ReplayPanel({ open, onClose, detail, onReplayed }: ReplayPanelPr
                 />
                 <button
                   type="button"
-                  className="grid h-6 w-6 place-items-center text-silver/60 hover:text-crit"
+                  className="grid h-6 w-6 place-items-center text-silver hover:text-crit"
                   onClick={() => setRows((rs) => rs.filter((r) => r.id !== row.id))}
                   aria-label={`Remove ${row.key || "header"}`}
                 >
@@ -231,7 +231,7 @@ export function ReplayPanel({ open, onClose, detail, onReplayed }: ReplayPanelPr
               </div>
             ))}
           </div>
-          <p className="mt-1.5 text-[12px] text-silver/80">Host, Content-Length, credentials and proxy headers are never forwarded</p>
+          <p className="mt-1.5 text-[12px] text-silver">Host, Content-Length, credentials and proxy headers are never forwarded</p>
         </div>
 
         <Toggle
@@ -267,7 +267,7 @@ export function ReplayPanel({ open, onClose, detail, onReplayed }: ReplayPanelPr
               <p className="num mt-2 truncate text-[12px] text-silver" title={result.targetUrl}>
                 {result.method} {result.targetUrl}
               </p>
-              {result.error && <p className="mt-2 text-[12px] text-[#E88A80]">{result.error}</p>}
+              {result.error && <p className="mt-2 text-[12px] text-crit">{result.error}</p>}
               {result.responseBody != null && (
                 <div className="mt-3">
                   <JsonView value={result.responseBody} maxHeight={260} />

@@ -5,21 +5,18 @@ import type { ReactNode } from "react";
 import { useMotionPreset } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-/** A 1px Silver Blue drafting rule that draws left → right on mount with an optional ambient light beam. */
-export function Rule({ delay = 0, className, animated = false }: { delay?: number; className?: string; animated?: boolean }) {
+/** A 1px hairline that draws left → right on mount. */
+export function Rule({ delay = 0, className }: { delay?: number; className?: string }) {
   const { ruleUnfurl } = useMotionPreset();
   return (
-    <div className="relative overflow-hidden">
-      <motion.div
-        aria-hidden
-        variants={ruleUnfurl}
-        custom={delay}
-        initial="hidden"
-        animate="visible"
-        className={cn("h-px w-full origin-left bg-rule", className)}
-      />
-      {animated && <div className="beam-runner" aria-hidden />}
-    </div>
+    <motion.div
+      aria-hidden
+      variants={ruleUnfurl}
+      custom={delay}
+      initial="hidden"
+      animate="visible"
+      className={cn("h-px w-full origin-left bg-rule", className)}
+    />
   );
 }
 
@@ -33,14 +30,14 @@ interface PageHeaderProps {
 }
 
 /**
- * Editorial page entrance: the top and bottom rules unfurl (0.65s), then the
- * eyebrow, title, description and actions reveal with a 0.06s stagger.
+ * Editorial page entrance: the hairlines draw across, then eyebrow, title,
+ * description and actions settle in with a short stagger.
  */
 export function PageHeader({ eyebrow, title, description, actions, meta, className }: PageHeaderProps) {
   const { titleReveal, staggerContainer } = useMotionPreset();
   return (
-    <header className={cn("pt-8 sm:pt-10", className)}>
-      <Rule animated />
+    <header className={cn("pt-2", className)}>
+      <Rule />
       <motion.div
         variants={staggerContainer(0.32)}
         initial="hidden"
@@ -55,7 +52,7 @@ export function PageHeader({ eyebrow, title, description, actions, meta, classNa
             {title}
           </motion.h1>
           {description && (
-            <motion.p variants={titleReveal} className="mt-4 max-w-2xl text-[15px] leading-relaxed text-body/85">
+            <motion.p variants={titleReveal} className="mt-3 max-w-2xl text-[15px] leading-relaxed text-body">
               {description}
             </motion.p>
           )}

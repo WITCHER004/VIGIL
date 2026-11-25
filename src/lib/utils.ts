@@ -1,6 +1,9 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+/** localStorage key for the theme; shared by ThemeProvider and the pre-paint boot script in the root layout. */
+export const THEME_STORAGE_KEY = "vigil-gallery-theme";
+
 /** Merge conditional class names, resolving Tailwind conflicts. */
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));

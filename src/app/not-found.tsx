@@ -6,7 +6,7 @@ export default function NotFound() {
       <div className="h-px bg-rule" />
       <p className="label mt-8">Error 404</p>
       <h1 className="mt-3 text-[40px] leading-tight">Page not found</h1>
-      <p className="mt-5 text-[15px] leading-relaxed text-body/85">
+      <p className="mt-5 text-[15px] leading-relaxed text-body">
         Nothing is being monitored at this address. It may have been deleted, or the link was mistyped.
       </p>
       <div className="mt-8 flex gap-3">

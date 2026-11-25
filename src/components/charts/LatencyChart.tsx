@@ -10,17 +10,26 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { useMotionPreset } from "@/lib/motion";
 import type { SeriesPoint, TimeRange } from "@/lib/stats";
 import { cn, formatAxisTime, formatDateTime, formatMs, formatPercent } from "@/lib/utils";
 
-export const SERIES = [
-  { key: "p99", label: "p99", color: "#DF3E26", width: 1.8 },
-  { key: "p95", label: "p95", color: "#D48A17", width: 1.6 },
-  { key: "p50", label: "p50", color: "#1F449C", width: 1.8 },
+// SVG presentation attributes can't resolve CSS variables, so the chart takes
+// literal hex per theme (mirrors the tokens in globals.css).
+const PALETTE = {
+  light: { p50: "#625E56", p95: "#9E7B43", p99: "#9E2A2B", grid: "#DDD8CD", axis: "#C7C0B2", surface: "#FDFCF9" },
+  dark: { p50: "#9E998E", p95: "#CFA866", p99: "#D64C4D", grid: "#2B2926", axis: "#45423D", surface: "#191816" },
+} as const;
+
+const SERIES = [
+  { key: "p99", label: "p99", width: 1.6 },
+  { key: "p95", label: "p95", width: 1.6 },
+  { key: "p50", label: "p50", width: 1.6 },
 ] as const;
 
 type SeriesKey = (typeof SERIES)[number]["key"];
+type Palette = (typeof PALETTE)[keyof typeof PALETTE];
 
 interface CrosshairProps {
   active?: boolean;
@@ -28,13 +37,13 @@ interface CrosshairProps {
 }
 
 /** Sharp floating readout: exact timestamp + percentile values for the hovered bucket. */
-function CrosshairCard({ active, payload }: CrosshairProps) {
+function CrosshairCard({ active, payload, colors }: CrosshairProps & { colors: Palette }) {
   const point = payload?.[0]?.payload as SeriesPoint | undefined;
   if (!active || !point) return null;
   return (
-    <div className="min-w-[204px] rounded-[2px] border border-hairline-strong bg-surface p-3.5 shadow-placard">
+    <div className="min-w-[204px] rounded-md border border-hairline-strong bg-surface p-3.5 shadow-placard">
       <div className="flex items-center justify-between">
-        <span className="font-sans text-[11px] font-semibold uppercase tracking-wider text-silver">Placard Telemetry</span>
+        <span className="label">Latency</span>
         <span className="num text-[11px] text-body">{formatDateTime(point.t)}</span>
       </div>
       <div className="my-2 h-px bg-rule" />
@@ -42,7 +51,7 @@ function CrosshairCard({ active, payload }: CrosshairProps) {
         {SERIES.map((s) => (
           <div key={s.key} className="flex items-center justify-between gap-6">
             <dt className="flex items-center gap-2 text-[12px] text-body">
-              <span className="h-[3px] w-3 rounded-[1px]" style={{ backgroundColor: s.color }} />
+              <span className="h-[2px] w-3 rounded-full" style={{ backgroundColor: colors[s.key] }} />
               <span className="font-medium text-ink">{s.label}</span>
             </dt>
             <dd className="num text-[13px] font-semibold text-ink">{formatMs(point[s.key])}</dd>
@@ -52,7 +61,7 @@ function CrosshairCard({ active, payload }: CrosshairProps) {
       <div className="my-2 h-px bg-rule" />
       <div className="num flex justify-between text-[12px] text-silver">
         <span>
-          {point.checks} checks{point.failures > 0 && <span className="font-medium text-vermilion"> · {point.failures} failed</span>}
+          {point.checks} checks{point.failures > 0 && <span className="font-medium text-crit"> · {point.failures} failed</span>}
         </span>
         <span className="font-medium text-ink">{formatPercent(point.uptime, 1)}</span>
       </div>
@@ -72,6 +81,8 @@ interface LatencyChartProps {
 /** Multi-percentile latency chart (p50 / p95 / p99) in the Vigil drafting style. */
 export function LatencyChart({ series, range, height = 280, className, hideLegend }: LatencyChartProps) {
   const { reduce } = useMotionPreset();
+  const { theme } = useTheme();
+  const colors = PALETTE[theme];
   // Draw the paths on mount and when the range changes — not on every live refresh,
   // which would re-sweep the lines every few seconds.
   const [animateKey, setAnimateKey] = useState(range);
@@ -108,7 +119,7 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
         <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2">
           {SERIES.map((s) => (
             <div key={s.key} className="flex items-center gap-2">
-              <span className="h-[2px] w-4" style={{ backgroundColor: s.color }} />
+              <span className="h-[2px] w-4 rounded-full" style={{ backgroundColor: colors[s.key] }} />
               <span className="label">{s.label}</span>
               <span className="num text-[13px] text-ink">{formatMs(latest?.[s.key as SeriesKey])}</span>
             </div>
@@ -124,7 +135,7 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
         )}
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart key={animateKey} data={series} margin={{ top: 6, right: 6, bottom: 0, left: 0 }}>
-            <CartesianGrid vertical={false} stroke="var(--rule)" strokeDasharray="3 3" opacity={0.5} />
+            <CartesianGrid vertical={false} stroke={colors.grid} strokeDasharray="3 4" />
             <XAxis
               dataKey="t"
               type="number"
@@ -132,7 +143,7 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
               domain={["dataMin", "dataMax"]}
               tickFormatter={(t: number) => formatAxisTime(t, range)}
               tickLine={false}
-              axisLine={{ stroke: "var(--hairline)" }}
+              axisLine={{ stroke: colors.axis }}
               tickMargin={10}
               minTickGap={48}
             />
@@ -145,8 +156,8 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
               tickCount={5}
             />
             <Tooltip
-              content={(props) => <CrosshairCard active={props.active} payload={props.payload} />}
-              cursor={{ stroke: "var(--hairline-strong)", strokeWidth: 1, strokeDasharray: "2 2" }}
+              content={(props) => <CrosshairCard active={props.active} payload={props.payload} colors={colors} />}
+              cursor={{ stroke: colors.axis, strokeWidth: 1, strokeDasharray: "2 2" }}
               isAnimationActive={false}
               offset={18}
             />
@@ -155,7 +166,7 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
                 key={s.key}
                 type="monotone"
                 dataKey={s.key}
-                stroke={s.color}
+                stroke={colors[s.key]}
                 strokeWidth={s.width}
                 strokeDasharray={s.key === "p95" ? "4 3" : undefined}
                 dot={(props: { index?: number; cx?: number; cy?: number; key?: React.Key | null }) => {
@@ -164,7 +175,7 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
                   const i = props.index ?? -1;
                   const isolated = series[i]?.[s.key] != null && series[i - 1]?.[s.key] == null && series[i + 1]?.[s.key] == null;
                   return isolated && props.cx != null && props.cy != null ? (
-                    <circle key={props.key ?? undefined} cx={props.cx} cy={props.cy} r={2.25} fill={s.color} />
+                    <circle key={props.key ?? undefined} cx={props.cx} cy={props.cy} r={2.25} fill={colors[s.key]} />
                   ) : (
                     <g key={props.key ?? undefined} />
                   );
@@ -173,7 +184,7 @@ export function LatencyChart({ series, range, height = 280, className, hideLegen
                 isAnimationActive={animate}
                 animationDuration={900}
                 animationEasing="ease-out"
-                activeDot={{ r: 3, fill: s.color, stroke: "#0A0F1E", strokeWidth: 2 }}
+                activeDot={{ r: 3, fill: colors[s.key], stroke: colors.surface, strokeWidth: 2 }}
               />
             ))}
           </ComposedChart>

@@ -14,7 +14,8 @@ const config: Config = {
         raised: withAlpha("--c-raised"),
         well: withAlpha("--c-well"),
 
-        // Archival Pigment Palette
+        // Accent + semantic pigments
+        brass: withAlpha("--c-brass"),
         viridian: withAlpha("--c-viridian"),
         ochre: withAlpha("--c-ochre"),
         vermilion: withAlpha("--c-vermilion"),
@@ -30,7 +31,7 @@ const config: Config = {
         ok: withAlpha("--c-viridian"),
         warn: withAlpha("--c-ochre"),
         crit: withAlpha("--c-vermilion"),
-        copper: withAlpha("--c-vermilion"),
+        copper: withAlpha("--c-brass"),
 
         hairline: "var(--hairline)",
         "hairline-strong": "var(--hairline-strong)",
@@ -47,21 +48,22 @@ const config: Config = {
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       fontSize: {
-        micro: ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.14em" }],
+        micro: ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.12em" }],
       },
       letterSpacing: {
-        label: "0.14em",
+        label: "0.12em",
       },
       borderRadius: {
-        sm: "2px",
-        DEFAULT: "2px",
-        md: "3px",
+        sm: "4px",
+        DEFAULT: "6px",
+        md: "6px",
       },
       transitionTimingFunction: {
-        gallery: "cubic-bezier(0.19, 1, 0.22, 1)",
+        gallery: "cubic-bezier(0.22, 1, 0.36, 1)",
+        atelier: "cubic-bezier(0.22, 1, 0.36, 1)",
       },
       boxShadow: {
-        drawer: "-1px 0 0 0 var(--hairline-strong), -24px 0 48px -24px rgba(18, 18, 18, 0.15)",
+        drawer: "-1px 0 0 0 var(--hairline-strong), -24px 0 48px -24px rgba(25, 24, 22, 0.12)",
         placard: "0 1px 3px rgba(18, 18, 18, 0.05), 0 10px 24px -10px rgba(18, 18, 18, 0.08)",
       },
     },

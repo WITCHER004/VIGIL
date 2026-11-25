@@ -1,24 +1,25 @@
 "use client";
 
-import { LayoutGroup, motion } from "framer-motion";
-import { Activity, ArrowUpRight, Command, Gauge, KeyRound, Moon, Sun, TriangleAlert, Webhook, type LucideIcon } from "lucide-react";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { Activity, ArrowUpRight, Command, Gauge, KeyRound, Menu, Moon, Plus, Sun, TriangleAlert, Webhook, X, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { OperatorUnlockModal } from "@/components/auth/OperatorUnlockModal";
 import { TelemetryProvider, useTelemetry, type SystemState } from "@/components/providers/TelemetryProvider";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { HeartbeatRipple, type Tone } from "@/components/ui/HeartbeatRipple";
-import { NAV_INDICATOR_ID, useMotionPreset } from "@/lib/motion";
+import { OPERATOR_REQUIRED_EVENT } from "@/lib/client/api";
+import { EASE_ATELIER, NAV_INDICATOR_ID, useMotionPreset } from "@/lib/motion";
 import { cn, formatRelative } from "@/lib/utils";
 import { CommandPalette } from "./CommandPalette";
 import { SimulatorDock } from "./SimulatorDock";
 
-const NAV: { href: string; room: string; label: string; icon: LucideIcon }[] = [
-  { href: "/", room: "01", label: "Overview", icon: Gauge },
-  { href: "/monitors", room: "02", label: "Monitors", icon: Activity },
-  { href: "/webhooks", room: "03", label: "Webhooks", icon: Webhook },
-  { href: "/incidents", room: "04", label: "Incidents", icon: TriangleAlert },
+const NAV: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/", label: "Overview", icon: Gauge },
+  { href: "/monitors", label: "Monitors", icon: Activity },
+  { href: "/webhooks", label: "Webhooks", icon: Webhook },
+  { href: "/incidents", label: "Incidents", icon: TriangleAlert },
 ];
 
 const SYSTEM_COPY: Record<SystemState, { label: string; tone: Tone }> = {
@@ -32,6 +33,20 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** Breadcrumb trail for the header, derived from the route. */
+function crumbsFor(pathname: string): { label: string; href?: string }[] {
+  const section = NAV.find((n) => n.href !== "/" && isActive(pathname, n.href));
+  if (!section) return [{ label: "Overview" }];
+  if (pathname === section.href) return [{ label: section.label }];
+  return [{ label: section.label, href: section.href }, { label: "Detail" }];
+}
+
+/** One primary action per workspace; pages open their create drawer when `?new=1` is present. */
+function ctaFor(pathname: string): { label: string; href: string } {
+  if (isActive(pathname, "/webhooks")) return { label: "New endpoint", href: "/webhooks?new=1" };
+  return { label: "New monitor", href: "/monitors?new=1" };
+}
+
 function useTicker(ms: number) {
   const [, setT] = useState(0);
   useEffect(() => {
@@ -42,55 +57,45 @@ function useTicker(ms: number) {
 
 function Wordmark() {
   return (
-    <Link href="/" className="group flex items-center gap-3" aria-label="Vigil — kinetic gallery telemetry">
-      <div className="relative flex h-8 w-8 items-center justify-center rounded-[2px] border border-vermilion/50 bg-well transition-all duration-300 group-hover:border-vermilion group-hover:bg-surface">
-        <div className="absolute inset-1 rounded-full border border-vermilion/30 border-dashed animate-radar-sweep" />
-        <div className="h-1.5 w-1.5 rounded-full bg-vermilion shadow-sm" />
-      </div>
-      <div className="flex flex-col">
-        <span className="font-display text-[24px] font-normal leading-none tracking-tight text-ink">Vigil</span>
-        <span className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-silver">Kinetic Telemetry</span>
-      </div>
+    <Link href="/" className="flex items-center gap-2.5" aria-label="Vigil — overview">
+      <span className="grid h-7 w-7 place-items-center rounded-md border border-hairline-strong bg-surface">
+        <span className="h-1.5 w-1.5 rounded-full bg-brass" />
+      </span>
+      <span className="font-display text-[22px] leading-none text-ink">Vigil</span>
     </Link>
   );
 }
 
-function StatusStrip() {
+/** System health + live-probing toggle, in one quiet pill. */
+function HealthPill() {
   const { systemState, globalBeat, lastSweepAt, live, setLive, fleet, sweeping } = useTelemetry();
   useTicker(5_000);
   const copy = SYSTEM_COPY[systemState];
+  const active = Math.max(0, fleet.total - fleet.PAUSED);
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="hidden items-center gap-2.5 rounded-[2px] border border-hairline bg-surface px-3 py-1.5 shadow-sm md:flex" aria-live="polite">
+    <div className="hidden h-8 items-center rounded-md border border-hairline bg-surface md:flex" aria-live="polite">
+      <span className="flex items-center gap-2 px-3">
         <HeartbeatRipple beat={globalBeat} tone={copy.tone} size={7} />
         <span className="text-[12px] font-medium text-ink">{copy.label}</span>
         {fleet.total > 0 && (
-          <span className="num ml-1 rounded-[1px] bg-well px-1.5 py-0.5 text-[11px] text-body border border-hairline">
-            {fleet.OPERATIONAL}/{Math.max(1, fleet.total - fleet.PAUSED)}
+          <span className="num text-[11px] text-silver">
+            {fleet.OPERATIONAL}/{active}
           </span>
         )}
-      </div>
-
+      </span>
+      <span className="h-4 w-px bg-hairline" aria-hidden />
       <button
         type="button"
         onClick={() => setLive(!live)}
         aria-pressed={live}
-        className={cn(
-          "group flex items-center gap-2 rounded-[2px] border px-2.5 py-1 text-[12px] transition-all duration-150 active:scale-95",
-          live
-            ? "border-vermilion/40 bg-vermilion/10 text-vermilion hover:border-vermilion"
-            : "border-hairline bg-surface text-silver hover:border-hairline-strong hover:text-body",
-        )}
-        title={live ? "Continuous live probing active — click to pause" : "Continuous probing paused — click to resume"}
+        className="flex h-full items-center gap-1.5 rounded-r-md px-2.5 text-[12px] text-body transition-colors hover:bg-well hover:text-ink"
+        title={live ? "Live probing on. Click to pause" : "Live probing paused. Click to resume"}
       >
-        <span className="relative flex h-2 w-2 items-center justify-center">
-          {live && <span className="absolute inline-flex h-full w-full rounded-full bg-vermilion opacity-75 animate-ping" />}
-          <span className={cn("relative inline-flex h-1.5 w-1.5 rounded-full", live ? "bg-vermilion" : "bg-silver/40")} />
-        </span>
-        <span className="font-sans font-medium">{live ? "Live" : "Paused"}</span>
-        <span className="num hidden text-[11px] opacity-75 sm:inline">
-          {sweeping ? "probing…" : lastSweepAt ? `swept ${formatRelative(lastSweepAt)}` : "—"}
+        <span className={cn("h-1.5 w-1.5 rounded-full", live ? "bg-brass" : "bg-silver/50")} />
+        {live ? "Live" : "Paused"}
+        <span className="num hidden text-[11px] text-silver lg:inline">
+          {sweeping ? "probing…" : lastSweepAt ? formatRelative(lastSweepAt) : ""}
         </span>
       </button>
     </div>
@@ -99,59 +104,45 @@ function StatusStrip() {
 
 function ThemeToggle() {
   const { theme, toggleTheme, mounted } = useTheme();
-  if (!mounted) {
-    return <div className="h-8 w-8 rounded-[2px] border border-hairline bg-surface" />;
-  }
-
+  if (!mounted) return <span className="h-8 w-8 rounded-md border border-hairline bg-surface" aria-hidden />;
+  const next = theme === "dark" ? "Atelier Ivory" : "Nocturne Obsidian";
   return (
-    <button
-      type="button"
-      onClick={toggleTheme}
-      className="btn-ghost !h-8 !w-8 !p-0"
-      title={theme === "dark" ? "Switch to Daylight Gallery" : "Switch to Evening Vault"}
-      aria-label="Toggle theme mode"
-    >
-      {theme === "dark" ? <Sun size={14} className="text-ochre" /> : <Moon size={14} className="text-body" />}
+    <button type="button" onClick={toggleTheme} className="btn-ghost !h-8 !w-8 !p-0" title={`Switch to ${next}`} aria-label={`Switch to ${next} theme`}>
+      {theme === "dark" ? <Sun size={15} strokeWidth={1.75} className="text-body" /> : <Moon size={15} strokeWidth={1.75} className="text-body" />}
     </button>
   );
 }
 
-function RailNav() {
+/** Navigation list + footer links. Rendered in the desktop rail and the mobile drawer. */
+function NavContent({ layoutGroup, onNavigate, onOpenPalette, onUnlock }: { layoutGroup: string; onNavigate?: () => void; onOpenPalette: () => void; onUnlock: () => void }) {
   const pathname = usePathname();
   const { indicatorTransition } = useMotionPreset();
   const { fleet } = useTelemetry();
 
   return (
-    <aside className="sticky top-[var(--topbar-h)] hidden h-[calc(100dvh-var(--topbar-h))] w-[var(--rail-w)] shrink-0 flex-col border-r border-hairline bg-canvas lg:flex">
-      <LayoutGroup id="rail">
-        <nav aria-label="Primary" className="flex flex-col gap-1 px-3 pt-6">
-          <p className="label mb-2 px-3">Exhibition Rooms</p>
-          {NAV.map(({ href, room, label, icon: Icon }) => {
+    <div className="flex h-full flex-col">
+      <LayoutGroup id={layoutGroup}>
+        <nav aria-label="Primary" className="flex flex-col gap-0.5 px-3 pt-4">
+          {NAV.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);
             return (
               <Link
                 key={href}
                 href={href}
+                onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex h-9 items-center gap-2.5 rounded-[2px] px-3 text-[13px] transition-colors duration-150",
-                  active ? "bg-surface text-ink font-medium shadow-sm border border-hairline" : "text-body hover:bg-surface/50 hover:text-ink",
+                  "relative flex h-9 items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors duration-150",
+                  active ? "bg-surface font-medium text-ink" : "text-body hover:bg-surface/70 hover:text-ink",
                 )}
               >
                 {active && (
-                  <motion.span
-                    layoutId={NAV_INDICATOR_ID}
-                    transition={indicatorTransition}
-                    className="absolute inset-y-1 left-0 w-[2.5px] rounded-r-[1px] bg-vermilion"
-                  />
+                  <motion.span layoutId={NAV_INDICATOR_ID} transition={indicatorTransition} className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-brass" />
                 )}
-                <span className="font-mono text-[10px] text-silver">{room}</span>
-                <Icon size={15} strokeWidth={1.5} className={active ? "text-vermilion" : "text-silver"} />
+                <Icon size={16} strokeWidth={1.75} className={active ? "text-brass" : "text-silver"} />
                 <span>{label}</span>
                 {href === "/incidents" && fleet.DOWN > 0 && (
-                  <span className="num ml-auto rounded-[2px] bg-vermilion px-1.5 py-0.2 text-[11px] font-semibold text-white">
-                    {fleet.DOWN}
-                  </span>
+                  <span className="num ml-auto rounded-sm bg-crit/10 px-1.5 text-[11px] font-medium text-crit">{fleet.DOWN}</span>
                 )}
               </Link>
             );
@@ -159,68 +150,41 @@ function RailNav() {
         </nav>
       </LayoutGroup>
 
-      <div className="mt-auto border-t border-hairline p-5">
-        <p className="label mb-3">Telemetry Ledger</p>
-        <dl className="tabular-nums grid grid-cols-2 gap-y-1.5 text-[12px]">
-          <dt className="text-silver">Operational</dt>
-          <dd className="text-right font-medium text-viridian">{fleet.OPERATIONAL}</dd>
-          <dt className="text-silver">Degraded</dt>
-          <dd className="text-right font-medium text-ochre">{fleet.DEGRADED}</dd>
-          <dt className="text-silver">Outage</dt>
-          <dd className="text-right font-medium text-vermilion">{fleet.DOWN}</dd>
-          <dt className="text-silver">Paused</dt>
-          <dd className="text-right font-medium text-silver">{fleet.PAUSED}</dd>
-        </dl>
-        <Link
-          href="/status/vigil"
-          className="mt-4 flex items-center justify-between rounded-[2px] border border-hairline bg-surface p-2 text-[12px] text-body transition-colors hover:border-hairline-strong hover:text-ink"
-        >
-          <span>Public Exhibition</span>
-          <ArrowUpRight size={13} strokeWidth={1.5} />
+      <div className="mt-auto flex flex-col gap-0.5 border-t border-hairline px-3 py-3">
+        <Link href="/status/vigil" onClick={onNavigate} className="flex h-9 items-center justify-between rounded-md px-3 text-[13px] text-body transition-colors hover:bg-surface/70 hover:text-ink">
+          Public status page
+          <ArrowUpRight size={14} strokeWidth={1.75} className="text-silver" />
         </Link>
+        <button type="button" onClick={onOpenPalette} className="flex h-9 items-center justify-between rounded-md px-3 text-left text-[13px] text-body transition-colors hover:bg-surface/70 hover:text-ink">
+          Keyboard shortcuts
+          <kbd className="num rounded-sm border border-hairline bg-well px-1.5 text-[11px] text-silver">⌘K</kbd>
+        </button>
+        <button type="button" onClick={onUnlock} className="flex h-9 items-center justify-between rounded-md px-3 text-left text-[13px] text-body transition-colors hover:bg-surface/70 hover:text-ink">
+          Operator session
+          <KeyRound size={14} strokeWidth={1.75} className="text-silver" />
+        </button>
       </div>
-    </aside>
+    </div>
   );
 }
 
-function MobileNav() {
-  const pathname = usePathname();
-  const { indicatorTransition } = useMotionPreset();
-
-  return (
-    <LayoutGroup id="mobile-nav">
-      <nav aria-label="Primary" className="sticky top-[var(--topbar-h)] z-20 flex overflow-x-auto border-b border-hairline bg-canvas lg:hidden">
-        {NAV.map(({ href, room, label, icon: Icon }) => {
-          const active = isActive(pathname, href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className={cn("relative flex h-11 shrink-0 items-center gap-2 px-4 text-[13px]", active ? "font-medium text-ink" : "text-body")}
-            >
-              <span className="font-mono text-[10px] text-silver">{room}</span>
-              <Icon size={14} strokeWidth={1.5} className={active ? "text-vermilion" : "text-silver"} />
-              <span>{label}</span>
-              {active && (
-                <motion.span
-                  layoutId={NAV_INDICATOR_ID}
-                  transition={indicatorTransition}
-                  className="absolute inset-x-2 -bottom-px h-[2px] bg-vermilion"
-                />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-    </LayoutGroup>
-  );
-}
-
-/** Architectural top exhibition header + left rail + simulator dock + command palette. */
+/** Calm shell: full-height rail, slim breadcrumb header, demo controls, palette and unlock modal. */
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [operatorModalOpen, setOperatorModalOpen] = useState(false);
+  const pathname = usePathname();
+  const { reduce } = useMotionPreset();
+  const [unlock, setUnlock] = useState<{ open: boolean; reason: "required" | "manual" }>({ open: false, reason: "manual" });
   const [commandOpen, setCommandOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const openPalette = useCallback(() => {
+    setDrawerOpen(false);
+    setCommandOpen(true);
+  }, []);
+  const openUnlock = useCallback(() => {
+    setDrawerOpen(false);
+    setUnlock({ open: true, reason: "manual" });
+  }, []);
+  const closeUnlock = useCallback(() => setUnlock((u) => ({ ...u, open: false })), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -228,67 +192,120 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         e.preventDefault();
         setCommandOpen((prev) => !prev);
       }
+      if (e.key === "Escape") setDrawerOpen(false);
     };
+    const onOperatorRequired = () => setUnlock({ open: true, reason: "required" });
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener(OPERATOR_REQUIRED_EVENT, onOperatorRequired);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener(OPERATOR_REQUIRED_EVENT, onOperatorRequired);
+    };
   }, []);
+
+  useEffect(() => setDrawerOpen(false), [pathname]);
+
+  const crumbs = crumbsFor(pathname);
+  const cta = ctaFor(pathname);
 
   return (
     <TelemetryProvider>
-      <a href="#main" className="sr-only z-[60] bg-vermilion px-3 py-2 text-white focus:not-sr-only focus:fixed focus:left-3 focus:top-3">
+      <a href="#main" className="sr-only z-[60] rounded-md bg-ink px-3 py-2 text-canvas focus:not-sr-only focus:fixed focus:left-3 focus:top-3">
         Skip to content
       </a>
 
-      <header className="sticky top-0 z-30 h-[var(--topbar-h)] border-b border-hairline bg-canvas/90 backdrop-blur-md">
-        <div className="flex h-full items-center justify-between gap-4 px-4 sm:px-6">
-          <div className="flex items-center gap-6">
+      <div className="flex min-h-dvh">
+        {/* Desktop rail */}
+        <aside className="sticky top-0 hidden h-dvh w-[var(--rail-w)] shrink-0 flex-col border-r border-hairline bg-canvas lg:flex">
+          <div className="flex h-[var(--topbar-h)] shrink-0 items-center border-b border-hairline px-5">
             <Wordmark />
           </div>
+          <NavContent layoutGroup="rail" onOpenPalette={openPalette} onUnlock={openUnlock} />
+        </aside>
 
-          <div className="flex items-center gap-3 sm:gap-4">
-            <StatusStrip />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-30 h-[var(--topbar-h)] shrink-0 border-b border-hairline bg-canvas">
+            <div className="flex h-full items-center justify-between gap-3 px-4 sm:px-6">
+              <div className="flex min-w-0 items-center gap-3">
+                <button type="button" onClick={() => setDrawerOpen(true)} className="btn-ghost !h-8 !w-8 !p-0 lg:hidden" aria-label="Open navigation" aria-expanded={drawerOpen}>
+                  <Menu size={16} strokeWidth={1.75} />
+                </button>
+                <span className="lg:hidden">
+                  <Wordmark />
+                </span>
+                <nav aria-label="Breadcrumb" className="hidden min-w-0 lg:block">
+                  <ol className="flex items-center gap-2 text-[13px]">
+                    {crumbs.map((c, i) => (
+                      <li key={c.label} className="flex min-w-0 items-center gap-2">
+                        {i > 0 && <span className="text-silver" aria-hidden>/</span>}
+                        {c.href ? (
+                          <Link href={c.href} className="text-body transition-colors hover:text-ink">
+                            {c.label}
+                          </Link>
+                        ) : (
+                          <span className="truncate font-medium text-ink" aria-current="page">
+                            {c.label}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+              </div>
 
-            {/* Command Palette Trigger */}
-            <button
-              type="button"
-              onClick={() => setCommandOpen(true)}
-              className="btn-ghost hidden !h-8 !px-2.5 text-[12px] sm:inline-flex"
-              title="Open Command Palette (⌘K)"
-            >
-              <Command size={13} className="text-silver" />
-              <span className="text-body">Search</span>
-              <kbd className="ml-1 rounded-[2px] border border-hairline bg-well px-1 text-[10px] text-silver">⌘K</kbd>
-            </button>
+              <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+                <HealthPill />
+                <button type="button" onClick={() => setCommandOpen(true)} className="btn-ghost hidden !h-8 !px-2.5 text-[12px] sm:inline-flex" aria-label="Open quick jump">
+                  <Command size={14} strokeWidth={1.75} className="text-silver" />
+                  <span className="text-body">Jump to</span>
+                  <kbd className="num rounded-sm border border-hairline bg-well px-1 text-[11px] text-silver">⌘K</kbd>
+                </button>
+                <ThemeToggle />
+                <Link href={cta.href} className="btn-primary !h-8 !px-3">
+                  <Plus size={14} strokeWidth={2} />
+                  <span className="hidden sm:inline">{cta.label}</span>
+                  <span className="sr-only sm:hidden">{cta.label}</span>
+                </Link>
+              </div>
+            </div>
+          </header>
 
-            {/* Operator Key Unlock */}
-            <button
-              type="button"
-              onClick={() => setOperatorModalOpen(true)}
-              className="btn-ghost !h-8 !w-8 !p-0"
-              title="Unlock Operator Controls"
-              aria-label="Unlock Operator Controls"
-            >
-              <KeyRound size={14} className="text-body" />
-            </button>
-
-            {/* Theme Toggle */}
-            <ThemeToggle />
-          </div>
+          <main id="main" className="min-w-0 flex-1 px-4 py-8 sm:px-8 xl:px-12">
+            {children}
+          </main>
         </div>
-      </header>
-
-      <MobileNav />
-
-      <div className="flex">
-        <RailNav />
-        <main id="main" className="min-w-0 flex-1 px-4 py-8 sm:px-8 xl:px-12">
-          {children}
-        </main>
       </div>
+
+      {/* Mobile navigation drawer */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDrawerOpen(false)} className="absolute inset-0 bg-[var(--backdrop)]" aria-hidden />
+            <motion.aside
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation"
+              initial={reduce ? { opacity: 0 } : { x: "-100%" }}
+              animate={reduce ? { opacity: 1 } : { x: 0 }}
+              exit={reduce ? { opacity: 0 } : { x: "-100%" }}
+              transition={{ duration: 0.35, ease: EASE_ATELIER }}
+              className="absolute inset-y-0 left-0 flex w-[min(280px,85vw)] flex-col border-r border-hairline bg-canvas"
+            >
+              <div className="flex h-[var(--topbar-h)] shrink-0 items-center justify-between border-b border-hairline px-4">
+                <Wordmark />
+                <button type="button" onClick={() => setDrawerOpen(false)} className="btn-subtle !h-8 !w-8 !p-0" aria-label="Close navigation">
+                  <X size={16} strokeWidth={1.75} />
+                </button>
+              </div>
+              <NavContent layoutGroup="mobile-rail" onNavigate={() => setDrawerOpen(false)} onOpenPalette={openPalette} onUnlock={openUnlock} />
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
 
       <SimulatorDock />
       <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
-      <OperatorUnlockModal open={operatorModalOpen} onClose={() => setOperatorModalOpen(false)} />
+      <OperatorUnlockModal open={unlock.open} reason={unlock.reason} onClose={closeUnlock} />
     </TelemetryProvider>
   );
 }

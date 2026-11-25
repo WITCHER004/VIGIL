@@ -212,9 +212,9 @@ export function InstantSolutionsPanel({
 
   if (loading) {
     return (
-      <div className={cn("panel border-l-[3px] border-l-vermilion/50 p-5 shadow-placard", className)}>
+      <div className={cn("panel border-l-2 border-l-brass/60 p-5", className)}>
         <div className="flex items-center gap-3 text-silver">
-          <RotateCw size={14} className="animate-spin text-vermilion" />
+          <RotateCw size={14} className="animate-spin text-brass" />
           <span className="text-[13px] tracking-wide text-body">Evaluating deterministic diagnostic ruleset…</span>
         </div>
       </div>
@@ -225,15 +225,15 @@ export function InstantSolutionsPanel({
 
   const confidenceBadge =
     report.confidence === "HIGH" ? (
-      <span className="rounded-[2px] border border-viridian/30 bg-viridian/10 px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-viridian">
+      <span className="rounded-sm border border-viridian/30 bg-viridian/10 px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-viridian">
         HIGH CONFIDENCE
       </span>
     ) : report.confidence === "MEDIUM" ? (
-      <span className="rounded-[2px] border border-ochre/30 bg-ochre/10 px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-ochre">
+      <span className="rounded-sm border border-ochre/30 bg-ochre/10 px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-ochre">
         MEDIUM CONFIDENCE
       </span>
     ) : (
-      <span className="rounded-[2px] border border-hairline bg-well px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-silver">
+      <span className="rounded-sm border border-hairline bg-well px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-silver">
         LOW CONFIDENCE
       </span>
     );
@@ -241,7 +241,7 @@ export function InstantSolutionsPanel({
   return (
     <div
       className={cn(
-        "panel relative overflow-hidden rounded-[2px] border border-hairline border-l-[3px] border-l-vermilion bg-surface p-5 sm:p-6 shadow-placard",
+        "panel relative overflow-hidden border-l-2 border-l-brass p-5 sm:p-6",
         className,
       )}
     >
@@ -249,8 +249,8 @@ export function InstantSolutionsPanel({
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-hairline pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-vermilion" />
-            <span className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-vermilion">Curator's Prescription</span>
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-brass" />
+            <span className="label">Instant solutions</span>
           </div>
           <h3 className="mt-1 font-display text-[22px] tracking-tight text-ink sm:text-[24px]">
             {report.rootCauseTitle}
@@ -270,9 +270,9 @@ export function InstantSolutionsPanel({
       <div className="mt-5">
         <div className="mb-3 flex items-center justify-between">
           <span className="label flex items-center gap-1.5 text-silver">
-            <Layers size={13} strokeWidth={1.5} className="text-copper" /> Observed Evidence Chain
+            <Layers size={13} strokeWidth={1.75} className="text-brass" /> Evidence
           </span>
-          <span className="text-[11px] text-silver/60">Deterministic Signals</span>
+          <span className="text-[11px] text-silver">Deterministic signals</span>
         </div>
 
         <div className="relative pl-5">
@@ -312,7 +312,7 @@ export function InstantSolutionsPanel({
                   />
                   <div>
                     <span className="font-medium text-ink">{ev.label}: </span>
-                    <span className="text-body/90">{ev.detail}</span>
+                    <span className="text-body">{ev.detail}</span>
                   </div>
                 </motion.div>
               );
@@ -328,7 +328,7 @@ export function InstantSolutionsPanel({
             <span className="label flex items-center gap-1.5 text-copper">
               <History size={13} strokeWidth={1.5} /> Historical Precedent
             </span>
-            <span className="text-[11px] text-silver/70">
+            <span className="text-[11px] text-silver">
               Recovered in <span className="num font-semibold text-ink">{precedent.timeToRecoverFormatted}</span>
             </span>
           </div>
@@ -336,10 +336,10 @@ export function InstantSolutionsPanel({
             <span className="font-medium text-ink">Prior Incident: </span>
             <span className="text-silver">{precedent.title}</span>
           </div>
-          <p className="mt-1.5 text-[12.5px] italic leading-relaxed text-body/90">
+          <p className="mt-1.5 text-[12.5px] italic leading-relaxed text-body">
             &ldquo;{precedent.resolutionNote}&rdquo;
           </p>
-          <div className="mt-2 text-[11px] text-silver/60">
+          <div className="mt-2 text-[11px] text-silver">
             {precedent.similarityReason} · Resolved {formatDateTime(precedent.resolvedAt)}
           </div>
         </div>
@@ -351,7 +351,7 @@ export function InstantSolutionsPanel({
           <span className="label flex items-center gap-1.5 text-silver">
             <Wrench size={13} strokeWidth={1.5} className="text-copper" /> Recommended Actions & Instant Fixes
           </span>
-          <span className="text-[11px] text-silver/60">Ranked by effectiveness</span>
+          <span className="text-[11px] text-silver">Ranked by effectiveness</span>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -380,11 +380,11 @@ export function InstantSolutionsPanel({
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[13.5px] font-medium text-ink">{fix.title}</span>
                       {fix.riskLevel === "GUARDED" ? (
-                        <span className="rounded-[2px] border border-copper/30 bg-copper/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-copper">
+                        <span className="rounded-sm border border-copper/30 bg-copper/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-copper">
                           GUARDED
                         </span>
                       ) : (
-                        <span className="rounded-[2px] border border-ok/30 bg-ok/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-ok">
+                        <span className="rounded-sm border border-ok/30 bg-ok/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-ok">
                           SAFE
                         </span>
                       )}
@@ -416,9 +416,9 @@ export function InstantSolutionsPanel({
                           <motion.span
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="inline-flex items-center gap-1.5 rounded border border-ok/40 bg-ok/15 px-2.5 py-1 text-[11.5px] font-medium text-ok"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-ok/40 bg-ok/10 px-2.5 py-1 text-[12px] font-medium text-ok"
                           >
-                            <CheckCircle2 size={13} /> VERIFIED & LOGGED
+                            <CheckCircle2 size={13} /> Verified &amp; logged
                           </motion.span>
                         ) : isConfirming ? (
                           <motion.div
@@ -430,7 +430,7 @@ export function InstantSolutionsPanel({
                             <button
                               type="button"
                               onClick={() => handleExecuteFix(fix)}
-                              className="relative inline-flex items-center gap-1.5 overflow-hidden rounded border border-copper bg-copper px-2.5 py-1 text-[12px] font-medium text-white shadow-sm hover:brightness-110"
+                              className="relative inline-flex items-center gap-1.5 overflow-hidden rounded-md border border-ink bg-ink px-2.5 py-1 text-[12px] font-medium text-canvas hover:opacity-90"
                             >
                               Confirm
                             </button>
@@ -443,7 +443,7 @@ export function InstantSolutionsPanel({
                                   return copy;
                                 })
                               }
-                              className="rounded border border-hairline px-2 py-1 text-[12px] text-silver hover:text-ink"
+                              className="rounded-md border border-hairline px-2 py-1 text-[12px] text-body hover:text-ink"
                             >
                               Cancel
                             </button>
@@ -455,9 +455,9 @@ export function InstantSolutionsPanel({
                             disabled={isRunning}
                             onClick={() => handleExecuteFix(fix)}
                             className={cn(
-                              "relative inline-flex items-center gap-1.5 overflow-hidden rounded px-3 py-1 text-[12px] font-medium transition-all",
+                              "relative inline-flex items-center gap-1.5 overflow-hidden rounded-md px-3 py-1 text-[12px] font-medium transition-colors",
                               fix.riskLevel === "GUARDED"
-                                ? "border border-copper/80 bg-copper/15 text-copper hover:bg-copper/25"
+                                ? "border border-brass/70 bg-brass/10 text-ink hover:bg-brass/20"
                                 : "border border-hairline bg-surface text-ink hover:border-hairline-strong",
                             )}
                           >
@@ -529,11 +529,11 @@ export function InstantSolutionsPanel({
                           )}
                         </button>
                       </div>
-                      <pre className="overflow-x-auto p-3 font-mono text-[12px] leading-relaxed text-silver/90">
+                      <pre className="overflow-x-auto p-3 font-mono text-[12px] leading-relaxed text-silver">
                         {fix.snippetCode}
                       </pre>
                       {fix.snippetExplanation && (
-                        <div className="border-t border-hairline/40 px-3.5 py-2 text-[11.5px] text-silver/70">
+                        <div className="border-t border-hairline/40 px-3.5 py-2 text-[11.5px] text-silver">
                           {fix.snippetExplanation}
                         </div>
                       )}
@@ -594,7 +594,7 @@ export function InstantSolutionsPanel({
         </div>
 
         {remediations.length > 0 && (
-          <span className="text-[11.5px] text-silver/70">
+          <span className="text-[11.5px] text-silver">
             {remediations.length} action{remediations.length === 1 ? "" : "s"} audited in timeline
           </span>
         )}

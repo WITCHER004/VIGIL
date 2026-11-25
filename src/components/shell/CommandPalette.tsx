@@ -79,7 +79,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       },
       {
         id: "action-theme",
-        label: `Switch to ${theme === "light" ? "Evening Vault (Dark)" : "Daylight Gallery (Light)"}`,
+        label: `Switch to ${theme === "light" ? "Nocturne Obsidian (dark)" : "Atelier Ivory (light)"}`,
         category: "Appearance",
         icon: theme === "light" ? Moon : Sun,
         run: () => toggleTheme(),
@@ -133,7 +133,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={onClose}
-            className="fixed inset-0 bg-ink/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-[var(--backdrop)]"
           />
 
           {/* Palette Dialog */}
@@ -142,7 +142,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98, y: -6 }}
             transition={{ duration: 0.2, ease: [0.19, 1, 0.22, 1] }}
-            className="relative z-10 w-full max-w-[560px] overflow-hidden rounded-[2px] border border-hairline-strong bg-surface shadow-2xl"
+            className="relative z-10 w-full max-w-[560px] overflow-hidden rounded-md border border-hairline-strong bg-surface shadow-placard"
           >
             {/* Search Input Bar */}
             <div className="flex items-center gap-3 border-b border-hairline px-4 py-3">
@@ -183,12 +183,12 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                         onClose();
                       }}
                       onMouseEnter={() => setSelectedIndex(index)}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[2px] text-left transition-colors text-[13px] ${
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-left transition-colors text-[13px] ${
                         isSelected ? "bg-well text-ink font-medium" : "text-body hover:text-ink"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon size={15} className={isSelected ? "text-vermilion" : "text-silver"} />
+                        <Icon size={15} className={isSelected ? "text-brass" : "text-silver"} />
                         <span>{item.label}</span>
                       </div>
                       <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-silver">

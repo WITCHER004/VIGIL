@@ -33,10 +33,10 @@ const fmtTime = utc({ hour: "2-digit", minute: "2-digit", hour12: false });
 const fmtDayShort = utc({ day: "numeric", month: "short" });
 
 const OVERALL: Record<OverallState, { label: string; tone: string; rgb: string; note: string }> = {
-  OPERATIONAL: { label: "All systems operational", tone: "text-viridian", rgb: "20 108 83", note: "Every component is responding normally within target SLAs." },
-  DEGRADED: { label: "Degraded performance", tone: "text-ochre", rgb: "212 138 23", note: "Some endpoints are exhibiting elevated response latencies." },
-  PARTIAL_OUTAGE: { label: "Partial outage", tone: "text-vermilion", rgb: "223 62 38", note: "One or more monitored services are failing synthetic health checks." },
-  MAJOR_OUTAGE: { label: "Major outage", tone: "text-vermilion", rgb: "223 62 38", note: "Critical services are unreachable or returning non-2xx codes." },
+  OPERATIONAL: { label: "All systems operational", tone: "text-ok", rgb: "var(--c-ok)", note: "Every component is responding normally within target SLAs." },
+  DEGRADED: { label: "Degraded performance", tone: "text-warn", rgb: "var(--c-warn)", note: "Some endpoints are exhibiting elevated response latencies." },
+  PARTIAL_OUTAGE: { label: "Partial outage", tone: "text-crit", rgb: "var(--c-crit)", note: "One or more monitored services are failing synthetic health checks." },
+  MAJOR_OUTAGE: { label: "Major outage", tone: "text-crit", rgb: "var(--c-crit)", note: "Critical services are unreachable or returning non-2xx codes." },
 };
 
 const COMPONENT_STATE: Record<string, { label: string; tone: string }> = {
@@ -86,20 +86,20 @@ export default async function StatusPage({ params }: Props) {
           <h1 className="mt-3 text-[40px] leading-[1.02] sm:text-[56px]">
             {page.title} <em className="italic text-silver">status</em>
           </h1>
-          {page.description && <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-body/85">{page.description}</p>}
+          {page.description && <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-body">{page.description}</p>}
         </div>
         <div className="h-px bg-rule" aria-hidden />
       </header>
 
       {/* Overall */}
       <section
-        className="mt-10 rounded-[2px] border border-hairline bg-surface p-6 sm:p-8 shadow-placard"
+        className="mt-10 rounded-md border border-hairline bg-surface p-6 sm:p-8"
         aria-live="polite"
       >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className="relative inline-flex h-3.5 w-3.5">
-              <span className="absolute inset-0 rounded-full opacity-60 animate-ping" style={{ backgroundColor: `rgb(${overall.rgb})` }} />
+              <span className="absolute -inset-1.5 rounded-full" style={{ backgroundColor: `rgb(${overall.rgb} / 0.14)` }} />
               <span className="relative h-3.5 w-3.5 rounded-full" style={{ backgroundColor: `rgb(${overall.rgb})` }} />
             </span>
             <div>
@@ -160,7 +160,7 @@ export default async function StatusPage({ params }: Props) {
             );
           })}
         </ul>
-        <p className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-silver/80">
+        <p className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-silver">
           <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-ok" /> ≥ 99.95%</span>
           <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-ok/60" /> ≥ 99%</span>
           <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-warn" /> ≥ 95%</span>

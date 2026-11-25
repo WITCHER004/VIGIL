@@ -7,11 +7,12 @@ import { cn } from "@/lib/utils";
 export type Tone = "ok" | "warn" | "crit" | "idle" | "copper";
 
 export const TONE_RGB: Record<Tone, string> = {
-  ok: "20 108 83",        // Viridian
-  warn: "212 138 23",      // Cadmium Ochre
-  crit: "223 62 38",       // Vermilion
-  idle: "130 126 118",     // Graphite Silver
-  copper: "223 62 38",     // Vermilion
+    // CSS variable references so badges, dots and timelines follow the active theme.
+  ok: "var(--c-ok)",
+  warn: "var(--c-warn-text)",
+  crit: "var(--c-crit)",
+  idle: "var(--c-silver)",
+  copper: "var(--c-brass)",
 };
 
 interface HeartbeatRippleProps {
